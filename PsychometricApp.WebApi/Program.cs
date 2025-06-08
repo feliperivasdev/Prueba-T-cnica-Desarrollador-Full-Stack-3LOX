@@ -20,6 +20,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITestService, TestService>();
+builder.Services.AddScoped<IQuestionBlockService, QuestionBlockService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
 
 // 🔒 Autenticación y Autorización se configurarán luego (JWT)
 
