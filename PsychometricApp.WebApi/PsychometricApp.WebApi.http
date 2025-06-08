@@ -1,0 +1,6 @@
+@PsychometricApp.WebApi_HostAddress = http://localhost:5194
+
+GET {{PsychometricApp.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
