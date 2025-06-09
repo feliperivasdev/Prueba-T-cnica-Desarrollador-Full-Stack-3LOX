@@ -5,32 +5,38 @@ using PsychometricApp.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🧩 Cargar cadena de conexión desde appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// ==========================
+// Configuración de Servicios
+// ==========================
 
-// 🔌 Registrar DbContext con PostgreSQL
+// Base de datos (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 📦 Agregar controladores (API RESTful)
-builder.Services.AddControllers();
-
-// 📘 Swagger/OpenAPI para documentación y pruebas
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Servicios de aplicación (Inyección de dependencias)
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<IQuestionBlockService, QuestionBlockService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
 builder.Services.AddScoped<IUserResponseService, UserResponseService>();
+builder.Services.AddScoped<IBlockResultService, BlockResultService>();
 
-// 🔒 Autenticación y Autorización se configurarán luego (JWT)
+// Controladores y Swagger/OpenAPI
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// 🚀 Construir la app
+// TODO: Configurar autenticación y autorización (JWT) aquí
+
+// ==========================
+// Construcción de la Aplicación
+// ==========================
 var app = builder.Build();
 
-// ⚙️ Middleware
+// ==========================
+// Configuración de Middleware
+// ==========================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -39,10 +45,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// TODO: app.UseAuthentication(); // Descomentar cuando se configure autenticación
 app.UseAuthorization();
 
-// 📌 Mapear controladores
 app.MapControllers();
 
-// 🔚 Ejecutar la aplicación
 app.Run();

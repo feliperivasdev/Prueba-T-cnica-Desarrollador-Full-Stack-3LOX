@@ -1,12 +1,12 @@
-namespace PsychometricApp.Domain.Entities;
+using System;
 
-public class BlockResult
+namespace PsychometricApp.Application.DTOs;
+
+public class BlockResultDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public User User { get; set; } = null!;
     public int BlockId { get; set; }
-    public QuestionBlock Block { get; set; } = null!;
     public decimal TotalScore { get; set; }
     public decimal AverageScore { get; set; }
     public DateTime CompletedAt { get; set; }
