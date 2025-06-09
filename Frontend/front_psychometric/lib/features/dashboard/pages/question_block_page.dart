@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/question_block_service.dart';
+import 'question_page.dart';
 
 class QuestionBlockPage extends StatelessWidget {
   final int testId;
@@ -38,6 +39,17 @@ class QuestionBlockPage extends StatelessWidget {
                   leading: CircleAvatar(child: Text('${block['orderNumber']}')),
                   title: Text(block['title'] ?? ''),
                   subtitle: Text(block['description'] ?? ''),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuestionPage(
+                          blockId: block['id'],
+                          blockTitle: block['title'] ?? '',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
