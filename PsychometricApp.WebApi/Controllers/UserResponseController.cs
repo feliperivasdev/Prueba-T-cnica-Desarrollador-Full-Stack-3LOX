@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
+[Authorize(Roles = "assessment,corporate,admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class UserResponseController : ControllerBase
@@ -30,14 +32,6 @@ public class UserResponseController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("ByUserAndQuestion")]
-    public async Task<IActionResult> GetByUserAndQuestion([FromQuery] int userId, [FromQuery] int questionId)
-    {
-        var response = await _service.GetByUserAndQuestionAsync(userId, questionId);
-        if (response == null) return NotFound();
-        return Ok(response);
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UserResponseDto dto)
     {
@@ -46,6 +40,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, [FromBody] UserResponseDto dto)
     {
         if (id != dto.Id) return BadRequest();
@@ -57,6 +52,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
@@ -16,6 +17,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<ActionResult<IEnumerable<QuestionBlockDto>>> GetAll()
     {
         var blocks = await _service.GetAllAsync();
@@ -23,6 +25,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<ActionResult<QuestionBlockDto>> GetById(int id)
     {
         var block = await _service.GetByIdAsync(id);
@@ -31,6 +34,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpGet("by-test/{testId}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<ActionResult<IEnumerable<QuestionBlockDto>>> GetByTestId(int testId)
     {
         var blocks = await _service.GetByTestIdAsync(testId);
@@ -38,6 +42,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<ActionResult<QuestionBlockDto>> Create(QuestionBlockDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -45,6 +50,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, QuestionBlockDto dto)
     {
         var updated = await _service.UpdateAsync(id, dto);
@@ -53,6 +59,7 @@ public class QuestionBlockController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
+[Authorize(Roles = "admin,corporate")]
 [ApiController]
 [Route("api/[controller]")]
 public class AnswerOptionController : ControllerBase
@@ -16,6 +18,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "assessment,corporate,admin")]   
     public async Task<IActionResult> GetAll()
     {
         var options = await _service.GetAllAsync();
@@ -23,6 +26,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> GetById(int id)
     {
         var option = await _service.GetByIdAsync(id);
@@ -31,6 +35,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpGet("ByQuestion/{questionId}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> GetByQuestionId(int questionId)
     {
         var options = await _service.GetByQuestionIdAsync(questionId);
@@ -38,6 +43,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Create([FromBody] AnswerOptionDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -45,6 +51,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, [FromBody] AnswerOptionDto dto)
     {
         if (id != dto.Id) return BadRequest();
@@ -56,6 +63,7 @@ public class AnswerOptionController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);

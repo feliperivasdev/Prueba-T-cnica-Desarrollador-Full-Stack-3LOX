@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
+[Authorize(Roles = "admin,corporate")]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -37,6 +39,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UserDto userDto)
     {
         var updated = await _userService.UpdateAsync(id, userDto);

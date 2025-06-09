@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
@@ -5,6 +6,7 @@ using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
+[Authorize(Roles = "assessment,corporate,admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class BlockResultController : ControllerBase
@@ -47,6 +49,7 @@ public class BlockResultController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, [FromBody] BlockResultDto dto)
     {
         if (id != dto.Id) return BadRequest();
@@ -58,6 +61,7 @@ public class BlockResultController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);

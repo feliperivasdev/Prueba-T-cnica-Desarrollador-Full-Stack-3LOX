@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
@@ -16,6 +17,7 @@ public class TestController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<ActionResult<IEnumerable<TestDto>>> GetAll()
     {
         var tests = await _testService.GetAllAsync();
@@ -23,6 +25,7 @@ public class TestController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<ActionResult<TestDto>> GetById(int id)
     {
         var test = await _testService.GetByIdAsync(id);
@@ -31,6 +34,7 @@ public class TestController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<ActionResult<TestDto>> Create(TestDto dto)
     {
         var created = await _testService.CreateAsync(dto);
@@ -38,6 +42,7 @@ public class TestController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, TestDto dto)
     {
         var updated = await _testService.UpdateAsync(id, dto);
@@ -46,6 +51,7 @@ public class TestController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _testService.DeleteAsync(id);

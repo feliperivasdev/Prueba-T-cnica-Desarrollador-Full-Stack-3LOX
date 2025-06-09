@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
 
+
+[Authorize(Roles = "assessment,corporate,admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class QuestionController : ControllerBase
@@ -36,6 +39,7 @@ public class QuestionController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Create([FromBody] QuestionDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -43,6 +47,7 @@ public class QuestionController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Update(int id, [FromBody] QuestionDto dto)
     {
         if (id != dto.Id) return BadRequest();
@@ -54,6 +59,7 @@ public class QuestionController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin,corporate")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);
