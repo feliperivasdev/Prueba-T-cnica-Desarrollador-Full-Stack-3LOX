@@ -2,57 +2,54 @@ using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
 
+namespace PsychometricApp.WebApi.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
-
-
 public class TestController : ControllerBase
 {
-    private readonly ITestService _service;
-    public TestController(ITestService service)
+    private readonly ITestService _testService;
+
+    public TestController(ITestService testService)
     {
-        _service = service;
+        _testService = testService;
     }
-    
+
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<IEnumerable<TestDto>>> GetAll()
     {
-        var tests = await _service.GetAllAsync();
+        var tests = await _testService.GetAllAsync();
         return Ok(tests);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<TestDto>> GetById(int id)
     {
-        var test = await _service.GetByIdAsync(id);
+        var test = await _testService.GetByIdAsync(id);
         if (test == null) return NotFound();
         return Ok(test);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] TestDto dto)
+    public async Task<ActionResult<TestDto>> Create(TestDto dto)
     {
-        var createdTest = await _service.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = createdTest.Id }, createdTest);
+        var created = await _testService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] TestDto dto)
+    public async Task<IActionResult> Update(int id, TestDto dto)
     {
-        if (id != dto.Id) return BadRequest();
-
-        var updated = await _service.UpdateAsync(id, dto);
+        var updated = await _testService.UpdateAsync(id, dto);
         if (!updated) return NotFound();
-
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _testService.DeleteAsync(id);
         if (!deleted) return NotFound();
-
         return NoContent();
     }
 }

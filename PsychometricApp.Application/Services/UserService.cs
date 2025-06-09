@@ -22,9 +22,12 @@ public class UserService : IUserService
             {
                 Id = u.Id,
                 Email = u.Email,
+                PasswordHash = u.PasswordHash,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 UserType = u.UserType,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
                 CorporateId = u.CorporateId
             })
             .ToListAsync();
@@ -39,9 +42,12 @@ public class UserService : IUserService
         {
             Id = user.Id,
             Email = user.Email,
+            PasswordHash = user.PasswordHash,
             FirstName = user.FirstName,
             LastName = user.LastName,
             UserType = user.UserType,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
             CorporateId = user.CorporateId
         };
     }
@@ -51,19 +57,21 @@ public class UserService : IUserService
         var user = new User
         {
             Email = userDto.Email,
+            PasswordHash = userDto.PasswordHash,
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
             UserType = userDto.UserType,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            CorporateId = userDto.CorporateId,
-            PasswordHash = "" // se implementará autenticación luego
+            CorporateId = userDto.CorporateId
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
         userDto.Id = user.Id;
+        userDto.CreatedAt = user.CreatedAt;
+        userDto.UpdatedAt = user.UpdatedAt;
         return userDto;
     }
 
@@ -77,6 +85,7 @@ public class UserService : IUserService
         user.UserType = userDto.UserType;
         user.UpdatedAt = DateTime.UtcNow;
         user.CorporateId = userDto.CorporateId;
+        user.PasswordHash = userDto.PasswordHash;
 
         await _context.SaveChangesAsync();
         return true;

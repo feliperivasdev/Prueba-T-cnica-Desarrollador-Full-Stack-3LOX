@@ -23,8 +23,9 @@ public class TestService : ITestService
                 Id = t.Id,
                 Name = t.Name,
                 Description = t.Description,
-                CreatedAt = t.CreatedAt,
-                
+                IsActive = t.IsActive,
+                CreatedBy = t.CreatedBy,
+                CreatedAt = t.CreatedAt
             })
             .ToListAsync();
     }
@@ -39,8 +40,9 @@ public class TestService : ITestService
             Id = test.Id,
             Name = test.Name,
             Description = test.Description,
-            CreatedAt = test.CreatedAt,
-           
+            IsActive = test.IsActive,
+            CreatedBy = test.CreatedBy,
+            CreatedAt = test.CreatedAt
         };
     }
 
@@ -50,8 +52,9 @@ public class TestService : ITestService
         {
             Name = dto.Name,
             Description = dto.Description,
-            CreatedAt = DateTime.UtcNow,
-            
+            IsActive = dto.IsActive,
+            CreatedBy = dto.CreatedBy,
+            CreatedAt = DateTime.UtcNow
         };
 
         _context.Tests.Add(test);
@@ -59,7 +62,6 @@ public class TestService : ITestService
 
         dto.Id = test.Id;
         dto.CreatedAt = test.CreatedAt;
-        
         return dto;
     }
 
@@ -70,7 +72,8 @@ public class TestService : ITestService
 
         test.Name = dto.Name;
         test.Description = dto.Description;
-        
+        test.IsActive = dto.IsActive;
+        test.CreatedBy = dto.CreatedBy;
 
         _context.Tests.Update(test);
         await _context.SaveChangesAsync();

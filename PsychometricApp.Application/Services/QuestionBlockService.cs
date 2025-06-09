@@ -22,7 +22,7 @@ public class QuestionBlockService : IQuestionBlockService
                 TestId = qb.TestId,
                 Title = qb.Name,
                 Description = qb.Description,
-
+                OrderNumber = qb.OrderNumber
             })
             .ToListAsync();
     }
@@ -38,7 +38,7 @@ public class QuestionBlockService : IQuestionBlockService
             TestId = qb.TestId,
             Title = qb.Name,
             Description = qb.Description,
-
+            OrderNumber = qb.OrderNumber
         };
     }
 
@@ -52,7 +52,7 @@ public class QuestionBlockService : IQuestionBlockService
                 TestId = qb.TestId,
                 Title = qb.Name,
                 Description = qb.Description,
-
+                OrderNumber = qb.OrderNumber
             })
             .ToListAsync();
     }
@@ -64,14 +64,13 @@ public class QuestionBlockService : IQuestionBlockService
             TestId = dto.TestId,
             Name = dto.Title,
             Description = dto.Description,
-
+            OrderNumber = dto.OrderNumber
         };
 
         _context.QuestionBlocks.Add(qb);
         await _context.SaveChangesAsync();
 
         dto.Id = qb.Id;
-
         return dto;
     }
 
@@ -83,6 +82,7 @@ public class QuestionBlockService : IQuestionBlockService
         qb.TestId = dto.TestId;
         qb.Name = dto.Title;
         qb.Description = dto.Description;
+        qb.OrderNumber = dto.OrderNumber;
 
         _context.QuestionBlocks.Update(qb);
         await _context.SaveChangesAsync();

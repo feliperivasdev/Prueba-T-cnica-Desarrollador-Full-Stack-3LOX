@@ -19,10 +19,9 @@ public class QuestionService : IQuestionService
             .Select(q => new QuestionDto
             {
                 Id = q.Id,
-                Text = q.Text,
                 QuestionBlockId = q.BlockId,
-                OrderNumber = q.OrderNumber,
-                
+                Text = q.Text,
+                OrderNumber = q.OrderNumber
             })
             .ToListAsync();
     }
@@ -37,8 +36,7 @@ public class QuestionService : IQuestionService
             Id = q.Id,
             QuestionBlockId = q.BlockId,
             Text = q.Text,
-            OrderNumber = q.OrderNumber,
-           
+            OrderNumber = q.OrderNumber
         };
     }
 
@@ -51,8 +49,7 @@ public class QuestionService : IQuestionService
                 Id = q.Id,
                 QuestionBlockId = q.BlockId,
                 Text = q.Text,
-                OrderNumber = q.OrderNumber,
-                
+                OrderNumber = q.OrderNumber
             })
             .ToListAsync();
     }
@@ -63,15 +60,13 @@ public class QuestionService : IQuestionService
         {
             BlockId = dto.QuestionBlockId,
             Text = dto.Text,
-            OrderNumber = dto.OrderNumber,
-            
+            OrderNumber = dto.OrderNumber
         };
 
         _context.Questions.Add(q);
         await _context.SaveChangesAsync();
 
         dto.Id = q.Id;
-        
         return dto;
     }
 
@@ -83,7 +78,6 @@ public class QuestionService : IQuestionService
         q.BlockId = dto.QuestionBlockId;
         q.Text = dto.Text;
         q.OrderNumber = dto.OrderNumber;
-        
 
         _context.Questions.Update(q);
         await _context.SaveChangesAsync();
