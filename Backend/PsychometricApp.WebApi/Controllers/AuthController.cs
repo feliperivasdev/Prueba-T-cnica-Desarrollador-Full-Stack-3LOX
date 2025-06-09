@@ -32,8 +32,16 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
     {
+        var user = await _authService.GetUserByEmailAsync(dto.Email); // Nuevo método que debes agregar
         var token = await _authService.LoginAsync(dto);
-        if (token == null) return Unauthorized("Credenciales inválidas.");
-        return Ok(new { token });
+        if (token == null || user == null) return Unauthorized("Credenciales inválidas.");
+        return Ok(new
+        {
+            token,
+            id = user.Id,
+            firstName = user.FirstName,
+            lastName = user.LastName,
+            userType = user.UserType
+        });
     }
 }

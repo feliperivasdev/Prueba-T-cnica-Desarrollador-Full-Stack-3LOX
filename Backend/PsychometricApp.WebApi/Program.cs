@@ -85,6 +85,18 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Agrega la política CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:49546") // Usa el puerto de tu frontend
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
+});
+
 // ==========================
 // Construcción de la Aplicación
 // ==========================
@@ -100,6 +112,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Usa la política CORS antes de cualquier middleware que procese solicitudes
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
