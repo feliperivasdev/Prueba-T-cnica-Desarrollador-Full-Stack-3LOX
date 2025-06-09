@@ -23,6 +23,7 @@ builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<IQuestionBlockService, QuestionBlockService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
+builder.Services.AddScoped<IUserResponseService, UserResponseService>();
 
 // 🔒 Autenticación y Autorización se configurarán luego (JWT)
 
