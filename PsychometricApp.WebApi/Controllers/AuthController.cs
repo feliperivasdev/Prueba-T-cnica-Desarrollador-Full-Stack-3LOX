@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PsychometricApp.Application.DTOs;
@@ -20,6 +21,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto dto)
     {
+        // Forzar UserType a "assessment" aquí si es registro público
+        dto.UserType = "assessment";
         var result = await _authService.RegisterAsync(dto);
         if (!result) return BadRequest("El correo ya está registrado.");
         return Ok("Usuario registrado correctamente.");

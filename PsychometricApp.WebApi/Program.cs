@@ -5,6 +5,9 @@ using PsychometricApp.Application.Interfaces;
 using PsychometricApp.Application.Services;
 using PsychometricApp.Infrastructure.Persistence;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using PsychometricApp.Domain.Entities;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +33,34 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 // Controladores y Swagger/OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PsychometricApp API", Version = "v1" });
+    // Configuración para JWT
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese el token JWT como: Bearer {token}"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // Configuración JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");

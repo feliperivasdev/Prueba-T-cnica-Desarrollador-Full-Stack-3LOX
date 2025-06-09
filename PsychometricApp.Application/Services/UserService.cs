@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PsychometricApp.Application.DTOs;
 using PsychometricApp.Application.Interfaces;
@@ -9,10 +10,12 @@ namespace PsychometricApp.Application.Services;
 public class UserService : IUserService
 {
     private readonly AppDbContext _context;
+    private readonly IPasswordHasher<User> _passwordHasher;
 
-    public UserService(AppDbContext context)
+    public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher)
     {
         _context = context;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -57,14 +60,23 @@ public class UserService : IUserService
         var user = new User
         {
             Email = userDto.Email,
-            PasswordHash = userDto.PasswordHash,
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
             UserType = userDto.UserType,
+            CorporateId = userDto.CorporateId,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            CorporateId = userDto.CorporateId
+            UpdatedAt = DateTime.UtcNow
         };
+
+        // Hashear la contraseña recibida en Password y guardar en PasswordHash
+        if (!string.IsNullOrWhiteSpace(userDto.Password))
+        {
+            user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
+        }
+        else
+        {
+            throw new ArgumentException("La contraseña es obligatoria para crear un usuario.");
+        }
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
@@ -72,6 +84,9 @@ public class UserService : IUserService
         userDto.Id = user.Id;
         userDto.CreatedAt = user.CreatedAt;
         userDto.UpdatedAt = user.UpdatedAt;
+        userDto.PasswordHash = user.PasswordHash;
+        userDto.Password = null; // Nunca devuelvas la contraseña
+
         return userDto;
     }
 
@@ -85,7 +100,11 @@ public class UserService : IUserService
         user.UserType = userDto.UserType;
         user.UpdatedAt = DateTime.UtcNow;
         user.CorporateId = userDto.CorporateId;
-        user.PasswordHash = userDto.PasswordHash;
+
+        if (!string.IsNullOrWhiteSpace(userDto.Password))
+        {
+            user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
+        }
 
         await _context.SaveChangesAsync();
         return true;

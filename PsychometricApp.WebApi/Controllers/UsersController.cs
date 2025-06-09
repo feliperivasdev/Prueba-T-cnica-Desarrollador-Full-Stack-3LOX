@@ -34,6 +34,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UserDto userDto)
     {
+        // Aquí puedes permitir crear cualquier tipo de usuario, según el rol autenticado
         var created = await _userService.CreateAsync(userDto);
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
