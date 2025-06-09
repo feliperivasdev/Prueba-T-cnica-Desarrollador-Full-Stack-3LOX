@@ -8,16 +8,16 @@ namespace PsychometricApp.Application.Services;
 
 public class BlockResultService : IBlockResultService
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbCon"Text" _con"Text";
 
-    public BlockResultService(AppDbContext context)
+    public BlockResultService(AppDbCon"Text" con"Text")
     {
-        _context = context;
+        _con"Text" = con"Text";
     }
 
     public async Task<IEnumerable<BlockResultDto>> GetAllAsync()
     {
-        return await _context.BlockResults
+        return await _con"Text".BlockResults
             .Select(r => new BlockResultDto
             {
                 Id = r.Id,
@@ -32,7 +32,7 @@ public class BlockResultService : IBlockResultService
 
     public async Task<BlockResultDto?> GetByIdAsync(int id)
     {
-        var r = await _context.BlockResults.FindAsync(id);
+        var r = await _con"Text".BlockResults.FindAsync(id);
         if (r == null) return null;
 
         return new BlockResultDto
@@ -48,7 +48,7 @@ public class BlockResultService : IBlockResultService
 
     public async Task<BlockResultDto?> GetByUserAndBlockAsync(int userId, int blockId)
     {
-        var r = await _context.BlockResults
+        var r = await _con"Text".BlockResults
             .FirstOrDefaultAsync(x => x.UserId == userId && x.BlockId == blockId);
         if (r == null) return null;
 
@@ -74,8 +74,8 @@ public class BlockResultService : IBlockResultService
             CompletedAt = DateTime.UtcNow
         };
 
-        _context.BlockResults.Add(r);
-        await _context.SaveChangesAsync();
+        _con"Text".BlockResults.Add(r);
+        await _con"Text".SaveChangesAsync();
 
         dto.Id = r.Id;
         dto.CompletedAt = r.CompletedAt;
@@ -84,7 +84,7 @@ public class BlockResultService : IBlockResultService
 
     public async Task<bool> UpdateAsync(int id, BlockResultDto dto)
     {
-        var r = await _context.BlockResults.FindAsync(id);
+        var r = await _con"Text".BlockResults.FindAsync(id);
         if (r == null) return false;
 
         r.UserId = dto.UserId;
@@ -93,18 +93,18 @@ public class BlockResultService : IBlockResultService
         r.AverageScore = dto.AverageScore;
         // r.CompletedAt = dto.CompletedAt; // Normalmente no se actualiza
 
-        _context.BlockResults.Update(r);
-        await _context.SaveChangesAsync();
+        _con"Text".BlockResults.Update(r);
+        await _con"Text".SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var r = await _context.BlockResults.FindAsync(id);
+        var r = await _con"Text".BlockResults.FindAsync(id);
         if (r == null) return false;
 
-        _context.BlockResults.Remove(r);
-        await _context.SaveChangesAsync();
+        _con"Text".BlockResults.Remove(r);
+        await _con"Text".SaveChangesAsync();
         return true;
     }
 }

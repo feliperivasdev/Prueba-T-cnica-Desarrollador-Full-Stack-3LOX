@@ -78,7 +78,6 @@ class _DashboardPageState extends State<DashboardPage> {
             );
           },
         );
-      // Aquí puedes agregar más casos para las otras secciones, usando sus servicios
       default:
         return const Center(child: Text('Funcionalidad próximamente'));
     }

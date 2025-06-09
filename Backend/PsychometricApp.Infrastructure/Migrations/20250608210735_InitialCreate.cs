@@ -18,11 +18,11 @@ namespace PsychometricApp.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    UserType = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: ""Text"", nullable: false),
+                    PasswordHash = table.Column<string>(type: ""Text"", nullable: false),
+                    FirstName = table.Column<string>(type: ""Text"", nullable: false),
+                    LastName = table.Column<string>(type: ""Text"", nullable: false),
+                    UserType = table.Column<string>(type: ""Text"", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CorporateId = table.Column<int>(type: "integer", nullable: true)
@@ -44,8 +44,8 @@ namespace PsychometricApp.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: ""Text"", nullable: false),
+                    Description = table.Column<string>(type: ""Text"", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedBy = table.Column<int>(type: "integer", nullable: false),
                     CreatorId = table.Column<int>(type: "integer", nullable: false),
@@ -68,8 +68,8 @@ namespace PsychometricApp.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: ""Text"", nullable: false),
+                    Description = table.Column<string>(type: ""Text"", nullable: true),
                     OrderNumber = table.Column<int>(type: "integer", nullable: false),
                     TestId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -119,7 +119,7 @@ namespace PsychometricApp.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Text = table.Column<string>(type: "text", nullable: false),
+                    "Text" = table.Column<string>(type: ""Text"", nullable: false),
                     OrderNumber = table.Column<int>(type: "integer", nullable: false),
                     BlockId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -135,22 +135,22 @@ namespace PsychometricApp.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AnswerOptions",
+                name: ""AnswerOptions"",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Value = table.Column<int>(type: "integer", nullable: false),
-                    Text = table.Column<string>(type: "text", nullable: false),
+                    "Text" = table.Column<string>(type: ""Text"", nullable: false),
                     OrderNumber = table.Column<int>(type: "integer", nullable: false),
-                    QuestionId = table.Column<int>(type: "integer", nullable: false)
+                    "QuestionId" = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AnswerOptions", x => x.Id);
+                    table.PrimaryKey("PK_"AnswerOptions"", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AnswerOptions_Questions_QuestionId",
-                        column: x => x.QuestionId,
+                        name: "FK_"AnswerOptions"_Questions_"QuestionId"",
+                        column: x => x."QuestionId",
                         principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -165,21 +165,21 @@ namespace PsychometricApp.Infrastructure.Migrations
                     ResponseValue = table.Column<int>(type: "integer", nullable: false),
                     RespondedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    QuestionId = table.Column<int>(type: "integer", nullable: false),
+                    "QuestionId" = table.Column<int>(type: "integer", nullable: false),
                     AnswerOptionId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserResponses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserResponses_AnswerOptions_AnswerOptionId",
+                        name: "FK_UserResponses_"AnswerOptions"_AnswerOptionId",
                         column: x => x.AnswerOptionId,
-                        principalTable: "AnswerOptions",
+                        principalTable: ""AnswerOptions"",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserResponses_Questions_QuestionId",
-                        column: x => x.QuestionId,
+                        name: "FK_UserResponses_Questions_"QuestionId"",
+                        column: x => x."QuestionId",
                         principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -192,9 +192,9 @@ namespace PsychometricApp.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AnswerOptions_QuestionId_OrderNumber",
-                table: "AnswerOptions",
-                columns: new[] { "QuestionId", "OrderNumber" },
+                name: "IX_"AnswerOptions"_"QuestionId"_OrderNumber",
+                table: ""AnswerOptions"",
+                columns: new[] { ""QuestionId"", "OrderNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -231,14 +231,14 @@ namespace PsychometricApp.Infrastructure.Migrations
                 column: "AnswerOptionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserResponses_QuestionId",
+                name: "IX_UserResponses_"QuestionId"",
                 table: "UserResponses",
-                column: "QuestionId");
+                column: ""QuestionId"");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserResponses_UserId_QuestionId",
+                name: "IX_UserResponses_UserId_"QuestionId"",
                 table: "UserResponses",
-                columns: new[] { "UserId", "QuestionId" },
+                columns: new[] { "UserId", ""QuestionId"" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -257,7 +257,7 @@ namespace PsychometricApp.Infrastructure.Migrations
                 name: "UserResponses");
 
             migrationBuilder.DropTable(
-                name: "AnswerOptions");
+                name: ""AnswerOptions"");
 
             migrationBuilder.DropTable(
                 name: "Questions");

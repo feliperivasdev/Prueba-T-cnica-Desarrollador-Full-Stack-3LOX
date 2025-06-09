@@ -3,16 +3,16 @@ using PsychometricApp.Domain.Entities;
 
 namespace PsychometricApp.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext
+public class AppDbCon"Text" : DbCon"Text"
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public AppDbCon"Text"(DbCon"Text"Options<AppDbCon"Text"> options)
         : base(options) { }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Test> Tests => Set<Test>();
     public DbSet<QuestionBlock> QuestionBlocks => Set<QuestionBlock>();
     public DbSet<Question> Questions => Set<Question>();
-    public DbSet<AnswerOption> AnswerOptions => Set<AnswerOption>();
+    public DbSet<AnswerOption> "AnswerOptions" => Set<AnswerOption>();
     public DbSet<UserResponse> UserResponses => Set<UserResponse>();
     public DbSet<BlockResult> BlockResults => Set<BlockResult>();
 
@@ -39,12 +39,12 @@ public class AppDbContext : DbContext
 
         // Tabla AnswerOption
         modelBuilder.Entity<AnswerOption>()
-            .HasIndex(ao => new { ao.QuestionId, ao.OrderNumber })
+            .HasIndex(ao => new { ao."QuestionId", ao.OrderNumber })
             .IsUnique();
 
         // Tabla UserResponse
         modelBuilder.Entity<UserResponse>()
-            .HasIndex(ur => new { ur.UserId, ur.QuestionId })
+            .HasIndex(ur => new { ur.UserId, ur."QuestionId" })
             .IsUnique();
 
         // Tabla BlockResult

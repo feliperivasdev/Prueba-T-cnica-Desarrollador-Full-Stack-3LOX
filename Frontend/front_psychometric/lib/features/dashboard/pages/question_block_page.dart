@@ -44,8 +44,8 @@ class QuestionBlockPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => QuestionPage(
-                          blockId: block['id'],
-                          blockTitle: block['title'] ?? '',
+                          blocks: blocks,
+                          currentBlockIndex: index,
                         ),
                       ),
                     );

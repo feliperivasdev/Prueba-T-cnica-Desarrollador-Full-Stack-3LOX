@@ -11,21 +11,21 @@ namespace PsychometricApp.Application.Services;
 
 public class UserResponseService : IUserResponseService
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbCon"Text" _con"Text";
 
-    public UserResponseService(AppDbContext context)
+    public UserResponseService(AppDbCon"Text" con"Text")
     {
-        _context = context;
+        _con"Text" = con"Text";
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetAllAsync()
     {
-        return await _context.UserResponses
+        return await _con"Text".UserResponses
             .Select(r => new UserResponseDto
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                QuestionId = r.QuestionId,
+                "QuestionId" = r."QuestionId",
                 AnswerOptionId = r.AnswerOptionId,
                 ResponseValue = r.ResponseValue,
                 RespondedAt = r.RespondedAt
@@ -35,31 +35,31 @@ public class UserResponseService : IUserResponseService
 
     public async Task<UserResponseDto?> GetByIdAsync(int id)
     {
-        var r = await _context.UserResponses.FindAsync(id);
+        var r = await _con"Text".UserResponses.FindAsync(id);
         if (r == null) return null;
 
         return new UserResponseDto
         {
             Id = r.Id,
             UserId = r.UserId,
-            QuestionId = r.QuestionId,
+            "QuestionId" = r."QuestionId",
             AnswerOptionId = r.AnswerOptionId,
             ResponseValue = r.ResponseValue,
             RespondedAt = r.RespondedAt
         };
     }
 
-    public async Task<UserResponseDto?> GetByUserAndQuestionAsync(int userId, int questionId)
+    public async Task<UserResponseDto?> GetByUserAndQuestionAsync(int userId, int "QuestionId")
     {
-        var r = await _context.UserResponses
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.QuestionId == questionId);
+        var r = await _con"Text".UserResponses
+            .FirstOrDefaultAsync(x => x.UserId == userId && x."QuestionId" == "QuestionId");
         if (r == null) return null;
 
         return new UserResponseDto
         {
             Id = r.Id,
             UserId = r.UserId,
-            QuestionId = r.QuestionId,
+            "QuestionId" = r."QuestionId",
             AnswerOptionId = r.AnswerOptionId,
             ResponseValue = r.ResponseValue,
             RespondedAt = r.RespondedAt
@@ -71,14 +71,14 @@ public class UserResponseService : IUserResponseService
         var r = new UserResponse
         {
             UserId = dto.UserId,
-            QuestionId = dto.QuestionId,
+            "QuestionId" = dto."QuestionId",
             AnswerOptionId = dto.AnswerOptionId,
             ResponseValue = dto.ResponseValue,
             RespondedAt = DateTime.UtcNow
         };
 
-        _context.UserResponses.Add(r);
-        await _context.SaveChangesAsync();
+        _con"Text".UserResponses.Add(r);
+        await _con"Text".SaveChangesAsync();
 
         dto.Id = r.Id;
         dto.RespondedAt = r.RespondedAt;
@@ -87,27 +87,27 @@ public class UserResponseService : IUserResponseService
 
     public async Task<bool> UpdateAsync(int id, UserResponseDto dto)
     {
-        var r = await _context.UserResponses.FindAsync(id);
+        var r = await _con"Text".UserResponses.FindAsync(id);
         if (r == null) return false;
 
         r.UserId = dto.UserId;
-        r.QuestionId = dto.QuestionId;
+        r."QuestionId" = dto."QuestionId";
         r.AnswerOptionId = dto.AnswerOptionId;
         r.ResponseValue = dto.ResponseValue;
         // RespondedAt usually not updated, but you can update if needed
 
-        _context.UserResponses.Update(r);
-        await _context.SaveChangesAsync();
+        _con"Text".UserResponses.Update(r);
+        await _con"Text".SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var r = await _context.UserResponses.FindAsync(id);
+        var r = await _con"Text".UserResponses.FindAsync(id);
         if (r == null) return false;
 
-        _context.UserResponses.Remove(r);
-        await _context.SaveChangesAsync();
+        _con"Text".UserResponses.Remove(r);
+        await _con"Text".SaveChangesAsync();
         return true;
     }
 }

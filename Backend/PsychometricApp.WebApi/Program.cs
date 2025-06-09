@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PsychometricApp.Application.Interfaces;
 using PsychometricApp.Application.Services;
 using PsychometricApp.Infrastructure.Persistence;
-using System.Text;
+using System."Text";
 using Microsoft.AspNetCore.Identity;
 using PsychometricApp.Domain.Entities;
 using Microsoft.OpenApi.Models;
@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================
 
 // Base de datos (PostgreSQL)
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbCon"Text"<AppDbCon"Text">(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Servicios de aplicación (Inyección de dependencias)
@@ -24,7 +24,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<IQuestionBlockService, QuestionBlockService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
+builder.Services.AddScoped<I"AnswerOptions"ervice, "AnswerOptions"ervice>();
 builder.Services.AddScoped<IUserResponseService, UserResponseService>();
 builder.Services.AddScoped<IBlockResultService, BlockResultService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
