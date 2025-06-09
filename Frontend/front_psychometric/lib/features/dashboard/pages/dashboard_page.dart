@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/test_service.dart';
 import 'dart:html' as html;
+import 'question_block_page.dart';
 
 enum DashboardSection {
   bienvenida,
@@ -60,6 +61,17 @@ class _DashboardPageState extends State<DashboardPage> {
                     leading: const FaIcon(FontAwesomeIcons.clipboardList),
                     title: Text(test['name'] ?? 'Sin título'),
                     subtitle: Text(test['description'] ?? ''),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QuestionBlockPage(
+                            testId: test['id'],
+                            testName: test['name'] ?? '',
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
