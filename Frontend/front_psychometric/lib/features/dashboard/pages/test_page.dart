@@ -59,14 +59,20 @@ class _TestPageState extends State<TestPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           final tests = snapshot.data ?? [];
-          if (tests.isEmpty) {
+          final filteredTests = (userRole == 'assessment')
+              ? tests.where((t) {
+                  final isActive = t['isActive'] ?? t['IsActive'];
+                  return isActive == true || isActive == 'true';
+                }).toList()
+              : tests;
+          if (filteredTests.isEmpty) {
             return const Center(child: Text('No hay tests disponibles'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: tests.length,
+            itemCount: filteredTests.length,
             itemBuilder: (context, index) {
-              final test = tests[index];
+              final test = filteredTests[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: ListTile(
