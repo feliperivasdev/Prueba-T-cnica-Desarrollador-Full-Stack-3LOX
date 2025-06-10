@@ -12,7 +12,7 @@ using PsychometricApp.Infrastructure.Persistence;
 namespace PsychometricApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250608210735_InitialCreate")]
+    [Migration("20250610013327_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -153,9 +153,6 @@ namespace PsychometricApp.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("integer");
-
                     b.Property<int>("CreatorId")
                         .HasColumnType("integer");
 
@@ -275,7 +272,7 @@ namespace PsychometricApp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("PsychometricApp.Domain.Entities.User", "User")
-                        .WithMany("BlockResults")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -310,7 +307,7 @@ namespace PsychometricApp.Infrastructure.Migrations
             modelBuilder.Entity("PsychometricApp.Domain.Entities.Test", b =>
                 {
                     b.HasOne("PsychometricApp.Domain.Entities.User", "Creator")
-                        .WithMany("CreatedTests")
+                        .WithMany()
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -343,7 +340,7 @@ namespace PsychometricApp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("PsychometricApp.Domain.Entities.User", "User")
-                        .WithMany("Responses")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -382,12 +379,6 @@ namespace PsychometricApp.Infrastructure.Migrations
             modelBuilder.Entity("PsychometricApp.Domain.Entities.User", b =>
                 {
                     b.Navigation("Assessments");
-
-                    b.Navigation("BlockResults");
-
-                    b.Navigation("CreatedTests");
-
-                    b.Navigation("Responses");
                 });
 #pragma warning restore 612, 618
         }

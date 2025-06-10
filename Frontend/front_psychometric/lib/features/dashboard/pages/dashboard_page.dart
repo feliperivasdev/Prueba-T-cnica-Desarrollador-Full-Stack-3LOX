@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/test_service.dart';
 import 'dart:html' as html;
 import 'question_block_page.dart';
+import 'create_test_page.dart'; // Asegúrate de importar la página para crear test
 
 enum DashboardSection {
   bienvenida,
@@ -27,6 +28,71 @@ class _DashboardPageState extends State<DashboardPage> {
   final TestService _testService = TestService();
 
   Widget _buildContent() {
+    if (_selectedSection == DashboardSection.tests) {
+      final role = (html.window.localStorage['user_type'] ?? '').toLowerCase();
+      return Column(
+        children: [
+          if (role == 'corporate' || role == 'admin')
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text('Crear Test'),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CreateTestPage()),
+                  );
+                  if (result == true) setState(() {});
+                },
+              ),
+            ),
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _testService.fetchTests(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                final tests = snapshot.data ?? [];
+                if (tests.isEmpty) {
+                  return const Center(child: Text('No hay tests disponibles.'));
+                }
+                return ListView.builder(
+                  itemCount: tests.length,
+                  itemBuilder: (context, index) {
+                    final test = tests[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: const Icon(Icons.assignment),
+                        title: Text(test['name'] ?? 'Sin título'),
+                        subtitle: Text(test['description'] ?? ''),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => QuestionBlockPage(
+                                testId: test['id'],
+                                testName: test['name'] ?? '',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }
+
     switch (_selectedSection) {
       case DashboardSection.bienvenida:
         final nombre = Uri.decodeComponent(
@@ -36,47 +102,6 @@ class _DashboardPageState extends State<DashboardPage> {
             '¡Bienvenido, $nombre!',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
-        );
-      case DashboardSection.tests:
-        return FutureBuilder<List<Map<String, dynamic>>>(
-          future: _testService.fetchTests(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-            final tests = snapshot.data ?? [];
-            if (tests.isEmpty) {
-              return const Center(child: Text('No hay tests disponibles.'));
-            }
-            return ListView.builder(
-              itemCount: tests.length,
-              itemBuilder: (context, index) {
-                final test = tests[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    leading: const FaIcon(FontAwesomeIcons.clipboardList),
-                    title: Text(test['name'] ?? 'Sin título'),
-                    subtitle: Text(test['description'] ?? ''),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => QuestionBlockPage(
-                            testId: test['id'],
-                            testName: test['name'] ?? '',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          },
         );
       default:
         return const Center(child: Text('Funcionalidad próximamente'));

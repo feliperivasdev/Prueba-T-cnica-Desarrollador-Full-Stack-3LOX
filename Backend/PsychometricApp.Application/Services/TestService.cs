@@ -24,7 +24,7 @@ public class TestService : ITestService
                 Name = t.Name,
                 Description = t.Description,
                 IsActive = t.IsActive,
-                CreatedBy = t.CreatedBy,
+                CreatorId = t.CreatorId,
                 CreatedAt = t.CreatedAt
             })
             .ToListAsync();
@@ -41,7 +41,7 @@ public class TestService : ITestService
             Name = test.Name,
             Description = test.Description,
             IsActive = test.IsActive,
-            CreatedBy = test.CreatedBy,
+            CreatorId = test.CreatorId, 
             CreatedAt = test.CreatedAt
         };
     }
@@ -53,7 +53,7 @@ public class TestService : ITestService
             Name = dto.Name,
             Description = dto.Description,
             IsActive = dto.IsActive,
-            CreatedBy = dto.CreatedBy,
+            CreatorId = dto.CreatorId, // <-- aquí
             CreatedAt = DateTime.UtcNow
         };
 
@@ -73,7 +73,7 @@ public class TestService : ITestService
         test.Name = dto.Name;
         test.Description = dto.Description;
         test.IsActive = dto.IsActive;
-        test.CreatedBy = dto.CreatedBy;
+        test.CreatorId = dto.CreatorId; // <-- aquí
 
         _context.Tests.Update(test);
         await _context.SaveChangesAsync();
