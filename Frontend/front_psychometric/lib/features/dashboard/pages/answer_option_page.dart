@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/answer_option_service.dart';
 import 'create_answer_option_page.dart';
+import 'dart:html' as html;
 
 class AnswerOptionPage extends StatefulWidget {
   final int questionId;
@@ -32,26 +33,29 @@ class _AnswerOptionPageState extends State<AnswerOptionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userRole = html.window.localStorage['user_type'] ?? '';
     return Scaffold(
       appBar: AppBar(
         title: Text('Opciones de Respuesta'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateAnswerOptionPage(questionId: widget.questionId),
-            ),
-          );
-          if (result != null) {
-            setState(() {
-              _loadOptions();
-            });
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: (userRole == 'corporate' || userRole == 'admin')
+          ? FloatingActionButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateAnswerOptionPage(questionId: widget.questionId),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _loadOptions();
+                  });
+                }
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -86,53 +90,55 @@ class _AnswerOptionPageState extends State<AnswerOptionPage> {
                       child: ListTile(
                         title: Text(option['text'] ?? 'Sin texto'),
                         subtitle: Text('Valor: ${option['value']}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                // TODO: Implementar edición de opción
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Confirmar eliminación'),
-                                    content: const Text('¿Estás seguro de que deseas eliminar esta opción?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, false),
-                                        child: const Text('Cancelar'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, true),
-                                        child: const Text('Eliminar'),
-                                      ),
-                                    ],
+                        trailing: (userRole == 'corporate' || userRole == 'admin')
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () {
+                                      // TODO: Implementar edición de opción
+                                    },
                                   ),
-                                );
-                                if (confirm == true) {
-                                  try {
-                                    await _answerOptionService.deleteAnswerOption(option['id']);
-                                    setState(() {
-                                      _loadOptions();
-                                    });
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error al eliminar la opción: $e')),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Confirmar eliminación'),
+                                          content: const Text('¿Estás seguro de que deseas eliminar esta opción?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, false),
+                                              child: const Text('Cancelar'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, true),
+                                              child: const Text('Eliminar'),
+                                            ),
+                                          ],
+                                        ),
                                       );
-                                    }
-                                  }
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+                                      if (confirm == true) {
+                                        try {
+                                          await _answerOptionService.deleteAnswerOption(option['id']);
+                                          setState(() {
+                                            _loadOptions();
+                                          });
+                                        } catch (e) {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error al eliminar la opción: $e')),
+                                            );
+                                          }
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              )
+                            : null,
                       ),
                     );
                   },

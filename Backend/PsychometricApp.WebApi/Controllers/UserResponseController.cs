@@ -35,7 +35,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "assessment")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> Create([FromBody] UserResponseDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -43,7 +43,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UserResponseDto dto)
     {
         if (id != dto.Id) return BadRequest();

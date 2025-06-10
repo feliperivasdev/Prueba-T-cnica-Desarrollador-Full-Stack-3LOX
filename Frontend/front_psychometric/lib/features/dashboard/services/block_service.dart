@@ -9,13 +9,18 @@ class BlockService {
     return html.window.localStorage['user_type'];
   }
 
-  bool _hasPermission() {
+  bool _canViewBlocks() {
+    final role = _getUserRole();
+    return role == 'corporate' || role == 'admin' || role == 'assessment';
+  }
+
+  bool _canManageBlocks() {
     final role = _getUserRole();
     return role == 'corporate' || role == 'admin';
   }
 
   Future<List<Map<String, dynamic>>> fetchBlocks() async {
-    if (!_hasPermission()) {
+    if (!_canViewBlocks()) {
       throw Exception('No tienes permiso para ver los bloques');
     }
 
@@ -45,7 +50,7 @@ class BlockService {
   }
 
   Future<List<Map<String, dynamic>>> fetchBlocksByTestId(int testId) async {
-    if (!_hasPermission()) {
+    if (!_canViewBlocks()) {
       throw Exception('No tienes permiso para ver los bloques');
     }
 
@@ -75,7 +80,7 @@ class BlockService {
   }
 
   Future<Map<String, dynamic>> createBlock(Map<String, dynamic> blockData) async {
-    if (!_hasPermission()) {
+    if (!_canManageBlocks()) {
       throw Exception('No tienes permiso para crear bloques');
     }
 
@@ -118,7 +123,7 @@ class BlockService {
   }
 
   Future<void> updateBlock(int id, Map<String, dynamic> blockData) async {
-    if (!_hasPermission()) {
+    if (!_canManageBlocks()) {
       throw Exception('No tienes permiso para actualizar bloques');
     }
 
@@ -152,7 +157,7 @@ class BlockService {
   }
 
   Future<void> deleteBlock(int id) async {
-    if (!_hasPermission()) {
+    if (!_canManageBlocks()) {
       throw Exception('No tienes permiso para eliminar bloques');
     }
 

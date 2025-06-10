@@ -9,13 +9,18 @@ class AnswerOptionService {
     return html.window.localStorage['user_type'];
   }
 
-  bool _hasPermission() {
+  bool _canViewOptions() {
+    final role = _getUserRole();
+    return role == 'corporate' || role == 'admin' || role == 'assessment';
+  }
+
+  bool _canManageOptions() {
     final role = _getUserRole();
     return role == 'corporate' || role == 'admin';
   }
 
   Future<List<Map<String, dynamic>>> fetchAnswerOptionsByQuestionId(int questionId) async {
-    if (!_hasPermission()) {
+    if (!_canViewOptions()) {
       throw Exception('No tienes permiso para ver las opciones de respuesta');
     }
 
@@ -26,7 +31,7 @@ class AnswerOptionService {
 
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/by-question/$questionId'),
+        Uri.parse('$_baseUrl/ByQuestion/$questionId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -45,7 +50,7 @@ class AnswerOptionService {
   }
 
   Future<Map<String, dynamic>> createAnswerOption(Map<String, dynamic> optionData) async {
-    if (!_hasPermission()) {
+    if (!_canManageOptions()) {
       throw Exception('No tienes permiso para crear opciones de respuesta');
     }
 
@@ -80,7 +85,7 @@ class AnswerOptionService {
   }
 
   Future<void> createDefaultOptions(int questionId) async {
-    if (!_hasPermission()) {
+    if (!_canManageOptions()) {
       throw Exception('No tienes permiso para crear opciones de respuesta');
     }
 
@@ -112,7 +117,7 @@ class AnswerOptionService {
   }
 
   Future<void> updateAnswerOption(int id, Map<String, dynamic> optionData) async {
-    if (!_hasPermission()) {
+    if (!_canManageOptions()) {
       throw Exception('No tienes permiso para actualizar opciones de respuesta');
     }
 
@@ -146,7 +151,7 @@ class AnswerOptionService {
   }
 
   Future<void> deleteAnswerOption(int id) async {
-    if (!_hasPermission()) {
+    if (!_canManageOptions()) {
       throw Exception('No tienes permiso para eliminar opciones de respuesta');
     }
 

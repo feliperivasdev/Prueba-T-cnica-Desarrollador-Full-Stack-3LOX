@@ -9,13 +9,18 @@ class QuestionService {
     return html.window.localStorage['user_type'];
   }
 
-  bool _hasPermission() {
+  bool _canViewQuestions() {
+    final role = _getUserRole();
+    return role == 'corporate' || role == 'admin' || role == 'assessment';
+  }
+
+  bool _canManageQuestions() {
     final role = _getUserRole();
     return role == 'corporate' || role == 'admin';
   }
 
   Future<List<Map<String, dynamic>>> fetchQuestions() async {
-    if (!_hasPermission()) {
+    if (!_canViewQuestions()) {
       throw Exception('No tienes permiso para ver las preguntas');
     }
 
@@ -45,7 +50,7 @@ class QuestionService {
   }
 
   Future<List<Map<String, dynamic>>> fetchQuestionsByBlockId(int blockId) async {
-    if (!_hasPermission()) {
+    if (!_canViewQuestions()) {
       throw Exception('No tienes permiso para ver las preguntas');
     }
 
@@ -56,7 +61,7 @@ class QuestionService {
 
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/by-block/$blockId'),
+        Uri.parse('$_baseUrl/ByBlock/$blockId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -75,7 +80,7 @@ class QuestionService {
   }
 
   Future<Map<String, dynamic>> createQuestion(Map<String, dynamic> questionData) async {
-    if (!_hasPermission()) {
+    if (!_canManageQuestions()) {
       throw Exception('No tienes permiso para crear preguntas');
     }
 
@@ -105,7 +110,7 @@ class QuestionService {
   }
 
   Future<void> updateQuestion(int id, Map<String, dynamic> questionData) async {
-    if (!_hasPermission()) {
+    if (!_canManageQuestions()) {
       throw Exception('No tienes permiso para actualizar preguntas');
     }
 
@@ -133,7 +138,7 @@ class QuestionService {
   }
 
   Future<void> deleteQuestion(int id) async {
-    if (!_hasPermission()) {
+    if (!_canManageQuestions()) {
       throw Exception('No tienes permiso para eliminar preguntas');
     }
 

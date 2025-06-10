@@ -18,6 +18,11 @@ class UserResponseService {
     return _getUserRole() == 'assessment';
   }
 
+  bool _canViewResponses() {
+    final role = _getUserRole();
+    return role == 'assessment' || role == 'corporate' || role == 'admin';
+  }
+
   Future<void> saveUserResponse({
     required int questionId,
     required int answerOptionId,
@@ -54,9 +59,8 @@ class UserResponseService {
     print('Enviando datos: ${jsonEncode(responseData)}'); // Para debugging
 
     try {
-      // Intentamos actualizar primero
-      final updateResponse = await http.put(
-        Uri.parse('$_baseUrl/update'),
+      final createResponse = await http.post(
+        Uri.parse(_baseUrl),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -64,30 +68,11 @@ class UserResponseService {
         body: jsonEncode(responseData),
       );
 
-      // Si la actualización falla (404), intentamos crear
-      if (updateResponse.statusCode == 404) {
-        final createResponse = await http.post(
-          Uri.parse(_baseUrl),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode(responseData),
-        );
+      print('Create Response status: ${createResponse.statusCode}');
+      print('Create Response body: ${createResponse.body}');
 
-        print('Create Response status: ${createResponse.statusCode}');
-        print('Create Response body: ${createResponse.body}');
-
-        if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
-          throw Exception('Error al crear la respuesta: ${createResponse.statusCode} - ${createResponse.body}');
-        }
-      } else {
-        print('Update Response status: ${updateResponse.statusCode}');
-        print('Update Response body: ${updateResponse.body}');
-
-        if (updateResponse.statusCode != 200) {
-          throw Exception('Error al actualizar la respuesta: ${updateResponse.statusCode} - ${updateResponse.body}');
-        }
+      if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
+        throw Exception('Error al crear la respuesta: ${createResponse.statusCode} - ${createResponse.body}');
       }
     } catch (e) {
       print('Error en la petición: $e');
@@ -96,8 +81,8 @@ class UserResponseService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserResponses() async {
-    if (!_isAssessment()) {
-      throw Exception('Solo los usuarios de tipo assessment pueden ver respuestas');
+    if (!_canViewResponses()) {
+      throw Exception('No tienes permiso para ver respuestas');
     }
 
     final userId = _getUserId();

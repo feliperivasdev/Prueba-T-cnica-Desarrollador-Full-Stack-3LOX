@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/test_service.dart';
 import 'create_test_page.dart';
 import 'question_block_page.dart';
+import 'dart:html' as html;
 
 class TestPage extends StatefulWidget {
   const TestPage({super.key});
@@ -26,24 +27,27 @@ class _TestPageState extends State<TestPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userRole = html.window.localStorage['user_type'] ?? '';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tests'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreateTestPage()),
-          );
-          if (result != null) {
-            setState(() {
-              _loadTests();
-            });
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: (userRole == 'corporate' || userRole == 'admin')
+          ? FloatingActionButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CreateTestPage()),
+                );
+                if (result != null) {
+                  setState(() {
+                    _loadTests();
+                  });
+                }
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _testsFuture,
         builder: (context, snapshot) {
@@ -74,49 +78,51 @@ class _TestPageState extends State<TestPage> {
                         test['isActive'] == true ? Icons.check_circle : Icons.cancel,
                         color: test['isActive'] == true ? Colors.green : Colors.red,
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          // TODO: Implementar edición de test
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirmar eliminación'),
-                              content: const Text('¿Estás seguro de que deseas eliminar este test?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Cancelar'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Eliminar'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirm == true) {
-                            try {
-                              await _testService.deleteTest(test['id']);
-                              setState(() {
-                                _loadTests();
-                              });
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error al eliminar el test: $e')),
-                                );
+                      if (userRole == 'corporate' || userRole == 'admin') ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            // TODO: Implementar edición de test
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirmar eliminación'),
+                                content: const Text('¿Estás seguro de que deseas eliminar este test?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Eliminar'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              try {
+                                await _testService.deleteTest(test['id']);
+                                setState(() {
+                                  _loadTests();
+                                });
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error al eliminar el test: $e')),
+                                  );
+                                }
                               }
                             }
-                          }
-                        },
-                      ),
+                          },
+                        ),
+                      ],
                     ],
                   ),
                   onTap: () {

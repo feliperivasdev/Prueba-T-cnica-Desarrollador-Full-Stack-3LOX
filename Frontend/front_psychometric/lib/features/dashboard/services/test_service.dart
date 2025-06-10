@@ -9,13 +9,18 @@ class TestService {
     return html.window.localStorage['user_type'];
   }
 
-  bool _hasPermission() {
+  bool _canViewOrDoTest() {
+    final role = _getUserRole();
+    return role == 'corporate' || role == 'admin' || role == 'assessment';
+  }
+
+  bool _canManageTest() {
     final role = _getUserRole();
     return role == 'corporate' || role == 'admin';
   }
 
   Future<List<Map<String, dynamic>>> fetchTests() async {
-    if (!_hasPermission()) {
+    if (!_canViewOrDoTest()) {
       throw Exception('No tienes permiso para ver los tests');
     }
 
@@ -45,7 +50,7 @@ class TestService {
   }
 
   Future<Map<String, dynamic>> createTest(Map<String, dynamic> testData) async {
-    if (!_hasPermission()) {
+    if (!_canManageTest()) {
       throw Exception('No tienes permiso para crear tests');
     }
 
@@ -75,7 +80,7 @@ class TestService {
   }
 
   Future<void> updateTest(int id, Map<String, dynamic> testData) async {
-    if (!_hasPermission()) {
+    if (!_canManageTest()) {
       throw Exception('No tienes permiso para actualizar tests');
     }
 
@@ -103,7 +108,7 @@ class TestService {
   }
 
   Future<void> deleteTest(int id) async {
-    if (!_hasPermission()) {
+    if (!_canManageTest()) {
       throw Exception('No tienes permiso para eliminar tests');
     }
 
