@@ -17,6 +17,8 @@ class _CreateUserPageState extends State<CreateUserPage> {
   final _passwordController = TextEditingController();
   final UserService _userService = UserService();
   bool _isLoading = false;
+  final List<String> _roles = ['assessment', 'corporate', 'admin'];
+  String? _selectedRole;
 
   @override
   void dispose() {
@@ -36,7 +38,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         email: _emailController.text,
-        userType: _userTypeController.text,
+        userType: _selectedRole!,
         password: _passwordController.text,
       );
       if (mounted) {
@@ -112,15 +114,26 @@ class _CreateUserPageState extends State<CreateUserPage> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _userTypeController,
+              DropdownButtonFormField<String>(
+                value: _selectedRole,
+                items: _roles
+                    .map((role) => DropdownMenuItem(
+                          value: role,
+                          child: Text(role),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedRole = value;
+                  });
+                },
                 decoration: const InputDecoration(
                   labelText: 'Tipo de usuario',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el tipo de usuario';
+                    return 'Por favor seleccione el tipo de usuario';
                   }
                   return null;
                 },
