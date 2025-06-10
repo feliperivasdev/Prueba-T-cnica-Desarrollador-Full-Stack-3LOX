@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/test_service.dart';
-import 'question_block_page.dart';
+import 'create_test_page.dart';
 
 class TestPage extends StatefulWidget {
-  const TestPage({Key? key}) : super(key: key);
+  const TestPage({super.key});
 
   @override
   State<TestPage> createState() => _TestPageState();
@@ -11,9 +11,7 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage> {
   final TestService _testService = TestService();
-  List<Map<String, dynamic>> _tests = [];
-  bool _isLoading = true;
-  String? _error;
+  late Future<List<Map<String, dynamic>>> _testsFuture;
 
   @override
   void initState() {
@@ -21,67 +19,111 @@ class _TestPageState extends State<TestPage> {
     _loadTests();
   }
 
-  Future<void> _loadTests() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final tests = await _testService.fetchTests();
-      
-      setState(() {
-        _tests = tests;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _navigateToQuestionBlockPage(Map<String, dynamic> test) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuestionBlockPage(
-          testId: test['id'],
-          testTitle: test['name'] ?? 'Test',
-        ),
-      ),
-    );
+  void _loadTests() {
+    _testsFuture = _testService.fetchTests();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tests Disponibles'),
+        title: const Text('Tests'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : _tests.isEmpty
-                  ? const Center(child: Text('No hay tests disponibles'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: _tests.length,
-                      itemBuilder: (context, index) {
-                        final test = _tests[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16.0),
-                          child: ListTile(
-                            title: Text(test['name'] ?? 'Test ${index + 1}'),
-                            subtitle: Text(test['description'] ?? ''),
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: () => _navigateToQuestionBlockPage(test),
-                          ),
-                        );
-                      },
-                    ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateTestPage()),
+          );
+          if (result != null) {
+            setState(() {
+              _loadTests();
+            });
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _testsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final tests = snapshot.data ?? [];
+          if (tests.isEmpty) {
+            return const Center(child: Text('No hay tests disponibles'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: tests.length,
+            itemBuilder: (context, index) {
+              final test = tests[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text(test['name'] ?? 'Sin nombre'),
+                  subtitle: Text(test['description'] ?? 'Sin descripción'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        test['isActive'] == true ? Icons.check_circle : Icons.cancel,
+                        color: test['isActive'] == true ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          // TODO: Implementar edición de test
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar eliminación'),
+                              content: const Text('¿Estás seguro de que deseas eliminar este test?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            try {
+                              await _testService.deleteTest(test['id']);
+                              setState(() {
+                                _loadTests();
+                              });
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al eliminar el test: $e')),
+                                );
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 } 

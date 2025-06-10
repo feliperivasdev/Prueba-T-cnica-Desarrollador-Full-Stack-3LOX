@@ -1,50 +1,55 @@
 import 'package:flutter/material.dart';
-import '../services/test_service.dart';
-import 'dart:html' as html;
+import '../services/block_service.dart';
 
-class CreateTestPage extends StatefulWidget {
-  const CreateTestPage({super.key});
+class CreateBlockPage extends StatefulWidget {
+  final int testId;
+
+  const CreateBlockPage({
+    super.key,
+    required this.testId,
+  });
 
   @override
-  State<CreateTestPage> createState() => _CreateTestPageState();
+  State<CreateBlockPage> createState() => _CreateBlockPageState();
 }
 
-class _CreateTestPageState extends State<CreateTestPage> {
+class _CreateBlockPageState extends State<CreateBlockPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  bool _isActive = true;
-  final _testService = TestService();
+  final _orderNumberController = TextEditingController();
+  final _blockService = BlockService();
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _orderNumberController.dispose();
     super.dispose();
   }
 
-  Future<void> _createTest() async {
+  Future<void> _createBlock() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final testData = {
+        final blockData = {
           "name": _nameController.text,
           "description": _descriptionController.text,
-          "isActive": _isActive,
-          "creatorId": int.parse(html.window.localStorage['user_id'] ?? '0'),
+          "orderNumber": int.parse(_orderNumberController.text),
+          "testId": widget.testId,
         };
 
-        final createdTest = await _testService.createTest(testData);
+        final createdBlock = await _blockService.createBlock(blockData);
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Test creado exitosamente')),
+            const SnackBar(content: Text('Bloque creado exitosamente')),
           );
-          Navigator.pop(context, createdTest);
+          Navigator.pop(context, createdBlock);
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al crear el test: $e')),
+            SnackBar(content: Text('Error al crear el bloque: $e')),
           );
         }
       }
@@ -55,7 +60,7 @@ class _CreateTestPageState extends State<CreateTestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Nuevo Test'),
+        title: const Text('Crear Nuevo Bloque'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -67,7 +72,7 @@ class _CreateTestPageState extends State<CreateTestPage> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nombre del Test',
+                  labelText: 'Nombre del Bloque',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -93,19 +98,27 @@ class _CreateTestPageState extends State<CreateTestPage> {
                 },
               ),
               const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Test Activo'),
-                value: _isActive,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isActive = value;
-                  });
+              TextFormField(
+                controller: _orderNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'Número de Orden',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingrese un número de orden';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Por favor ingrese un número válido';
+                  }
+                  return null;
                 },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _createTest,
-                child: const Text('Crear Test'),
+                onPressed: _createBlock,
+                child: const Text('Crear Bloque'),
               ),
             ],
           ),
@@ -113,4 +126,4 @@ class _CreateTestPageState extends State<CreateTestPage> {
       ),
     );
   }
-}
+} 

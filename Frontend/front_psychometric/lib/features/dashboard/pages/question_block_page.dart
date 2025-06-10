@@ -4,16 +4,17 @@ import 'question_page.dart';
 import 'create_question_block.dart';
 import 'edit_question_block_page.dart';
 import 'dart:html' as html;
+import 'create_block_page.dart';
 
 class QuestionBlockPage extends StatefulWidget {
   final int testId;
   final String testTitle;
 
   const QuestionBlockPage({
-    Key? key,
+    super.key,
     required this.testId,
     required this.testTitle,
-  }) : super(key: key);
+  });
 
   @override
   State<QuestionBlockPage> createState() => _QuestionBlockPageState();
@@ -21,9 +22,7 @@ class QuestionBlockPage extends StatefulWidget {
 
 class _QuestionBlockPageState extends State<QuestionBlockPage> {
   final BlockService _blockService = BlockService();
-  List<Map<String, dynamic>> _blocks = [];
-  bool _isLoading = true;
-  String? _error;
+  late Future<List<Map<String, dynamic>>> _blocksFuture;
 
   @override
   void initState() {
@@ -31,25 +30,8 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
     _loadBlocks();
   }
 
-  Future<void> _loadBlocks() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final blocks = await _blockService.fetchBlocksByTestId(widget.testId);
-      
-      setState(() {
-        _blocks = blocks;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
+  void _loadBlocks() {
+    _blocksFuture = _blockService.fetchBlocksByTestId(widget.testId);
   }
 
   void _navigateToQuestionPage(Map<String, dynamic> block) {
@@ -74,30 +56,102 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.testTitle),
+        title: Text('Bloques de ${widget.testTitle}'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : _blocks.isEmpty
-                  ? const Center(child: Text('No hay bloques disponibles'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: _blocks.length,
-                      itemBuilder: (context, index) {
-                        final block = _blocks[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16.0),
-                          child: ListTile(
-                            title: Text(block['title']),
-                            subtitle: Text(block['description']),
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: () => _navigateToQuestionPage(block),
-                          ),
-                        );
-                      },
-                    ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateBlockPage(testId: widget.testId),
+            ),
+          );
+          if (result != null) {
+            setState(() {
+              _loadBlocks();
+            });
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _blocksFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final blocks = snapshot.data ?? [];
+          if (blocks.isEmpty) {
+            return const Center(child: Text('No hay bloques disponibles'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: blocks.length,
+            itemBuilder: (context, index) {
+              final block = blocks[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text(block['name'] ?? 'Sin nombre'),
+                  subtitle: Text(block['description'] ?? 'Sin descripción'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Orden: ${block['orderNumber']}'),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          // TODO: Implementar edición de bloque
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar eliminación'),
+                              content: const Text('¿Estás seguro de que deseas eliminar este bloque?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            try {
+                              await _blockService.deleteBlock(block['id']);
+                              setState(() {
+                                _loadBlocks();
+                              });
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al eliminar el bloque: $e')),
+                                );
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

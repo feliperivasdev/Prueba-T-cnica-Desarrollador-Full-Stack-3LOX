@@ -5,7 +5,20 @@ import 'dart:html' as html;
 class BlockService {
   static const _baseUrl = 'http://localhost:5194/api/QuestionBlock';
 
+  String? _getUserRole() {
+    return html.window.localStorage['user_type'];
+  }
+
+  bool _hasPermission() {
+    final role = _getUserRole();
+    return role == 'corporate' || role == 'admin';
+  }
+
   Future<List<Map<String, dynamic>>> fetchBlocks() async {
+    if (!_hasPermission()) {
+      throw Exception('No tienes permisos para ver los bloques');
+    }
+
     final token = html.window.localStorage['jwt_token'];
     if (token == null) {
       throw Exception('No autenticado');
@@ -19,59 +32,130 @@ class BlockService {
           'Content-Type': 'application/json',
         },
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.cast<Map<String, dynamic>>();
       } else {
-        throw Exception('Error al obtener los bloques: ${response.statusCode} - ${response.body}');
+        throw Exception('Error al obtener los bloques: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error en fetchBlocks: $e');
       throw Exception('Error al obtener los bloques: $e');
     }
   }
 
   Future<List<Map<String, dynamic>>> fetchBlocksByTestId(int testId) async {
+    if (!_hasPermission()) {
+      throw Exception('No tienes permisos para ver los bloques');
+    }
+
     final token = html.window.localStorage['jwt_token'];
     if (token == null) {
       throw Exception('No autenticado');
     }
 
     try {
-      // Obtener todos los bloques
       final response = await http.get(
-        Uri.parse(_baseUrl),
+        Uri.parse('$_baseUrl/by-test/$testId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        // Filtrar los bloques que corresponden al testId
-        final filteredBlocks = data
-            .where((block) => block['testId'] == testId)
-            .cast<Map<String, dynamic>>()
-            .toList();
-        
-        // Ordenar por orderNumber
-        filteredBlocks.sort((a, b) => a['orderNumber'].compareTo(b['orderNumber']));
-        
-        return filteredBlocks;
+        return data.cast<Map<String, dynamic>>();
       } else {
-        throw Exception('Error al obtener los bloques del test: ${response.statusCode} - ${response.body}');
+        throw Exception('Error al obtener los bloques: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error en fetchBlocksByTestId: $e');
-      throw Exception('Error al obtener los bloques del test: $e');
+      throw Exception('Error al obtener los bloques: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createBlock(Map<String, dynamic> blockData) async {
+    if (!_hasPermission()) {
+      throw Exception('No tienes permisos para crear bloques');
+    }
+
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(blockData),
+      );
+
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al crear el bloque: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al crear el bloque: $e');
+    }
+  }
+
+  Future<void> updateBlock(int id, Map<String, dynamic> blockData) async {
+    if (!_hasPermission()) {
+      throw Exception('No tienes permisos para actualizar bloques');
+    }
+
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(blockData),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar el bloque: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al actualizar el bloque: $e');
+    }
+  }
+
+  Future<void> deleteBlock(int id) async {
+    if (!_hasPermission()) {
+      throw Exception('No tienes permisos para eliminar bloques');
+    }
+
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar el bloque: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al eliminar el bloque: $e');
     }
   }
 
