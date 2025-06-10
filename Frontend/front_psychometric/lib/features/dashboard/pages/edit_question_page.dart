@@ -40,6 +40,7 @@ class _EditQuestionPageState extends State<EditQuestionPage> {
       await _questionService.updateQuestion(
         widget.question['id'],
         {
+          "id": widget.question['id'],
           "text": _textController.text,
           "questionBlockId": widget.question['questionBlockId'],
           "orderNumber": widget.question['orderNumber'],
