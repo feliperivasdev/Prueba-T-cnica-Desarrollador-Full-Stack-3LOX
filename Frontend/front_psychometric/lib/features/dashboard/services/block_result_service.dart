@@ -108,4 +108,35 @@ class BlockResultService {
       throw Exception('Error al obtener el resultado: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getBlockResultsReport() async {
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    try {
+      // Obtener todos los resultados
+      final response = await http.get(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Error al obtener el reporte: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+      throw Exception('Error al obtener el reporte: $e');
+    }
+  }
 } 
