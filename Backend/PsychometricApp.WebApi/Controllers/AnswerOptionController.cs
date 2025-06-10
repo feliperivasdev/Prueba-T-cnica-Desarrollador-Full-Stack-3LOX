@@ -5,7 +5,7 @@ using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
-[Authorize(Roles = "admin,corporate")]
+
 [ApiController]
 [Route("api/[controller]")]
 public class AnswerOptionController : ControllerBase
