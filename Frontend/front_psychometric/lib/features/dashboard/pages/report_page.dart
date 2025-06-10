@@ -287,54 +287,69 @@ class _ReportPageState extends State<ReportPage> {
           flex: 3,
           child: _selectedUser == null
               ? const Center(child: Text('Selecciona un usuario para ver sus resultados'))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Resultados de ${_selectedUser!['firstName']} ${_selectedUser!['lastName']}',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          Row(
+              : FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _blockResultService.getBlockResultsReport().then((results) => enrichResultsWithTestName(results.where((r) => r['userId'] == _selectedUser!['id']).toList())),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    final userResults = snapshot.data ?? [];
+                    if (userResults.isEmpty) {
+                      return const Center(child: Text('No hay resultados para mostrar'));
+                    }
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Vista: '),
-                              const SizedBox(width: 8),
-                              ChoiceChip(
-                                label: const Text('Gráfica'),
-                                selected: _showGraph,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _showGraph = selected;
-                                  });
-                                },
+                              Text(
+                                'Resultados de ${_selectedUser!['firstName']} ${_selectedUser!['lastName']}',
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(width: 8),
-                              ChoiceChip(
-                                label: const Text('Tabla'),
-                                selected: !_showGraph,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _showGraph = !selected;
-                                  });
-                                },
+                              Row(
+                                children: [
+                                  const Text('Vista: '),
+                                  const SizedBox(width: 8),
+                                  ChoiceChip(
+                                    label: const Text('Gráfica'),
+                                    selected: _showGraph,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        _showGraph = selected;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ChoiceChip(
+                                    label: const Text('Tabla'),
+                                    selected: !_showGraph,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        _showGraph = !selected;
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: _blockResults.isEmpty
-                            ? const Center(child: Text('No hay resultados para mostrar'))
-                            : _showGraph ? _buildResultsGraph() : _buildResultsTable(),
-                      ),
-                    ),
-                  ],
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: _showGraph
+                                ? _buildResultsGraphCustom(userResults)
+                                : _buildResultsTableCustom(userResults),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
         ),
       ],
