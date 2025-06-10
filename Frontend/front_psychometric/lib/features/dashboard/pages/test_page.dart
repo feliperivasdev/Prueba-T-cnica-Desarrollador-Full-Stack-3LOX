@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/test_service.dart';
 import 'create_test_page.dart';
+import 'question_block_page.dart';
 
 class TestPage extends StatefulWidget {
   const TestPage({super.key});
@@ -118,6 +119,17 @@ class _TestPageState extends State<TestPage> {
                       ),
                     ],
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuestionBlockPage(
+                          testId: test['id'],
+                          testTitle: test['name'] ?? 'Test',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },

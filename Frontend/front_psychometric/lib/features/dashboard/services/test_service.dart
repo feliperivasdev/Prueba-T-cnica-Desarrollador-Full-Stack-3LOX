@@ -16,7 +16,7 @@ class TestService {
 
   Future<List<Map<String, dynamic>>> fetchTests() async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para ver los tests');
+      throw Exception('No tienes permiso para ver los tests');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -46,7 +46,7 @@ class TestService {
 
   Future<Map<String, dynamic>> createTest(Map<String, dynamic> testData) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para crear tests');
+      throw Exception('No tienes permiso para crear tests');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -64,7 +64,7 @@ class TestService {
         body: jsonEncode(testData),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
       } else {
         throw Exception('Error al crear el test: ${response.statusCode}');
@@ -76,7 +76,7 @@ class TestService {
 
   Future<void> updateTest(int id, Map<String, dynamic> testData) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para actualizar tests');
+      throw Exception('No tienes permiso para actualizar tests');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -104,7 +104,7 @@ class TestService {
 
   Future<void> deleteTest(int id) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para eliminar tests');
+      throw Exception('No tienes permiso para eliminar tests');
     }
 
     final token = html.window.localStorage['jwt_token'];

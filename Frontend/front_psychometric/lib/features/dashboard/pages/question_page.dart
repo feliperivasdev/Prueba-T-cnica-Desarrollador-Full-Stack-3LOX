@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import '../services/question_service.dart';
-import '../services/user_response_service.dart';
-import '../services/block_result_service.dart';
+import 'create_question_page.dart';
+import 'answer_option_page.dart';
 
 class QuestionPage extends StatefulWidget {
   final int blockId;
-  final String blockTitle;
-  final String blockDescription;
+  final String blockName;
 
   const QuestionPage({
-    Key? key,
+    super.key,
     required this.blockId,
-    required this.blockTitle,
-    required this.blockDescription,
-  }) : super(key: key);
+    required this.blockName,
+  });
 
   @override
   State<QuestionPage> createState() => _QuestionPageState();
@@ -22,12 +19,7 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage> {
   final QuestionService _questionService = QuestionService();
-  final UserResponseService _userResponseService = UserResponseService();
-  final BlockResultService _blockResultService = BlockResultService();
-  List<Map<String, dynamic>> _questions = [];
-  Map<int, int> _responses = {};
-  bool _isLoading = true;
-  String? _error;
+  late Future<List<Map<String, dynamic>>> _questionsFuture;
 
   @override
   void initState() {
@@ -35,150 +27,118 @@ class _QuestionPageState extends State<QuestionPage> {
     _loadQuestions();
   }
 
-  Future<void> _loadQuestions() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final questions = await _questionService.fetchQuestionsByBlock(widget.blockId);
-      
-      setState(() {
-        _questions = questions;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _submitBlockResponses() async {
-    if (_questions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay preguntas para responder')),
-      );
-      return;
-    }
-
-    // Verificar que todas las preguntas tengan respuesta
-    for (var question in _questions) {
-      if (!_responses.containsKey(question['id'])) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor responde todas las preguntas')),
-        );
-        return;
-      }
-    }
-
-    try {
-      // Guardar cada respuesta
-      for (var entry in _responses.entries) {
-        await _userResponseService.saveUserResponse(
-          questionId: entry.key,
-          answerOptionId: entry.value,
-          responseValue: entry.value,
-        );
-      }
-
-      // Calcular y guardar el resultado del bloque
-      final totalScore = _responses.values.fold(0.0, (sum, value) => sum + value.toDouble());
-      final averageScore = totalScore / _responses.length;
-
-      await _blockResultService.saveBlockResult(
-        blockId: widget.blockId,
-        totalScore: totalScore,
-        averageScore: averageScore,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Respuestas guardadas correctamente')),
-        );
-        Navigator.pop(context, true); // Retornar true para indicar que se completó el bloque
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar las respuestas: $e')),
-        );
-      }
-    }
+  void _loadQuestions() {
+    _questionsFuture = _questionService.fetchQuestionsByBlockId(widget.blockId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.blockTitle),
+        title: Text(widget.blockName),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : _questions.isEmpty
-                  ? const Center(child: Text('No hay preguntas disponibles'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.blockDescription,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 24),
-                          ..._questions.map((question) => _buildQuestionCard(question)),
-                          const SizedBox(height: 24),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: _submitBlockResponses,
-                              child: const Text('Enviar Respuestas'),
-                            ),
-                          ),
-                        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateQuestionPage(blockId: widget.blockId),
+            ),
+          );
+          if (result != null) {
+            setState(() {
+              _loadQuestions();
+            });
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _questionsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final questions = snapshot.data ?? [];
+          if (questions.isEmpty) {
+            return const Center(child: Text('No hay preguntas disponibles'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: questions.length,
+            itemBuilder: (context, index) {
+              final question = questions[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text(question['text'] ?? 'Sin texto'),
+                  subtitle: Text('Tipo: ${question['type']}'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AnswerOptionPage(
+                          questionId: question['id'],
+                          questionText: question['text'],
+                        ),
                       ),
-                    ),
-    );
-  }
-
-  Widget _buildQuestionCard(Map<String, dynamic> question) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              question['text'],
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(5, (index) {
-                final value = index + 1;
-                return ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _responses[question['id']] = value;
-                    });
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _responses[question['id']] == value
-                        ? Theme.of(context).primaryColor
-                        : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          // TODO: Implementar edición de pregunta
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar eliminación'),
+                              content: const Text('¿Estás seguro de que deseas eliminar esta pregunta?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            try {
+                              await _questionService.deleteQuestion(question['id']);
+                              setState(() {
+                                _loadQuestions();
+                              });
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al eliminar la pregunta: $e')),
+                                );
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  child: Text(value.toString()),
-                );
-              }),
-            ),
-          ],
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

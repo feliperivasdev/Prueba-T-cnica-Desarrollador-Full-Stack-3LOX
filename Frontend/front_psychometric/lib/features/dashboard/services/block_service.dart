@@ -16,7 +16,7 @@ class BlockService {
 
   Future<List<Map<String, dynamic>>> fetchBlocks() async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para ver los bloques');
+      throw Exception('No tienes permiso para ver los bloques');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -46,7 +46,7 @@ class BlockService {
 
   Future<List<Map<String, dynamic>>> fetchBlocksByTestId(int testId) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para ver los bloques');
+      throw Exception('No tienes permiso para ver los bloques');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -76,7 +76,7 @@ class BlockService {
 
   Future<Map<String, dynamic>> createBlock(Map<String, dynamic> blockData) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para crear bloques');
+      throw Exception('No tienes permiso para crear bloques');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -85,28 +85,41 @@ class BlockService {
     }
 
     try {
+      final requestBody = {
+        "testId": blockData['testId'],
+        "title": blockData['title'],
+        "description": blockData['description'],
+        "orderNumber": blockData['orderNumber'],
+      };
+      
+      print('Enviando datos al servidor: ${jsonEncode(requestBody)}');
+      
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(blockData),
+        body: jsonEncode(requestBody),
       );
 
-      if (response.statusCode == 201) {
+      print('Respuesta del servidor - Status: ${response.statusCode}');
+      print('Respuesta del servidor - Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error al crear el bloque: ${response.statusCode}');
+        throw Exception('Error al crear el bloque: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
+      print('Error en createBlock: $e');
       throw Exception('Error al crear el bloque: $e');
     }
   }
 
   Future<void> updateBlock(int id, Map<String, dynamic> blockData) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para actualizar bloques');
+      throw Exception('No tienes permiso para actualizar bloques');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -121,7 +134,13 @@ class BlockService {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(blockData),
+        body: jsonEncode({
+          "id": id,
+          "testId": blockData['testId'],
+          "title": blockData['title'],
+          "description": blockData['description'],
+          "orderNumber": blockData['orderNumber'],
+        }),
       );
 
       if (response.statusCode != 200) {
@@ -134,7 +153,7 @@ class BlockService {
 
   Future<void> deleteBlock(int id) async {
     if (!_hasPermission()) {
-      throw Exception('No tienes permisos para eliminar bloques');
+      throw Exception('No tienes permiso para eliminar bloques');
     }
 
     final token = html.window.localStorage['jwt_token'];

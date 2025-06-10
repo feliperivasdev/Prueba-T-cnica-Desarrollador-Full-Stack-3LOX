@@ -40,8 +40,7 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
       MaterialPageRoute(
         builder: (context) => QuestionPage(
           blockId: block['id'],
-          blockTitle: block['title'],
-          blockDescription: block['description'],
+          blockName: block['title'],
         ),
       ),
     ).then((completed) {
@@ -56,7 +55,7 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bloques de ${widget.testTitle}'),
+        title: Text(widget.testTitle),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -95,13 +94,22 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: ListTile(
-                  title: Text(block['name'] ?? 'Sin nombre'),
+                  title: Text(block['title'] ?? 'Sin nombre'),
                   subtitle: Text(block['description'] ?? 'Sin descripción'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuestionPage(
+                          blockId: block['id'],
+                          blockName: block['title'],
+                        ),
+                      ),
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Orden: ${block['orderNumber']}'),
-                      const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {

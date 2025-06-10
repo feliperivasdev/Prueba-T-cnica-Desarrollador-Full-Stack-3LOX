@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/question_service.dart';
-import 'dart:html' as html;
+import '../services/answer_option_service.dart';
 
 class CreateQuestionPage extends StatefulWidget {
   final int blockId;
-  final int orderNumber;
 
   const CreateQuestionPage({
     super.key,
     required this.blockId,
-    required this.orderNumber,
   });
 
   @override
@@ -19,92 +17,81 @@ class CreateQuestionPage extends StatefulWidget {
 class _CreateQuestionPageState extends State<CreateQuestionPage> {
   final _formKey = GlobalKey<FormState>();
   final _textController = TextEditingController();
-  bool _loading = false;
-  String? _error;
+  final _questionService = QuestionService();
+  final _answerOptionService = AnswerOptionService();
 
-  final QuestionService _questionService = QuestionService();
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createQuestion() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final questionData = {
+          "questionBlockId": widget.blockId,
+          "text": _textController.text,
+          "type": "Likert",
+          "orderNumber": 1, // TODO: Implementar orden dinámico
+        };
+
+        final createdQuestion = await _questionService.createQuestion(questionData);
+        
+        // Crear opciones de respuesta por defecto
+        await _answerOptionService.createDefaultOptions(createdQuestion['id']);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pregunta creada exitosamente')),
+          );
+          Navigator.pop(context, createdQuestion);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al crear la pregunta: $e')),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final role = html.window.localStorage['user_type'] ?? '';
-
-    if (role != 'corporate' && role != 'admin') {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Crear Pregunta')),
-        body: const Center(child: Text('No tienes permisos para crear una pregunta.')),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Pregunta')),
+      appBar: AppBar(
+        title: const Text('Crear Nueva Pregunta'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 controller: _textController,
                 decoration: const InputDecoration(
                   labelText: 'Texto de la Pregunta',
-                  hintText: 'Ingrese el texto de la pregunta',
+                  border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingrese el texto de la pregunta';
+                  }
+                  return null;
+                },
               ),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _loading
-                    ? null
-                    : () async {
-                        if (_formKey.currentState?.validate() != true) return;
-                        setState(() {
-                          _loading = true;
-                          _error = null;
-                        });
-                        try {
-                          final createdQuestion = await _questionService.createQuestion(
-                            text: _textController.text.trim(),
-                            blockId: widget.blockId,
-                            orderNumber: widget.orderNumber,
-                          );
-                          
-                          if (!createdQuestion.containsKey('id')) {
-                            throw Exception('No se pudo obtener el ID de la pregunta creada');
-                          }
-
-                          if (mounted) {
-                            Navigator.pop(context, createdQuestion);
-                          }
-                        } catch (e) {
-                          setState(() {
-                            _error = e.toString();
-                          });
-                        } finally {
-                          setState(() {
-                            _loading = false;
-                          });
-                        }
-                      },
-                child: _loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Crear Pregunta'),
+                onPressed: _createQuestion,
+                child: const Text('Crear Pregunta'),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
   }
 }

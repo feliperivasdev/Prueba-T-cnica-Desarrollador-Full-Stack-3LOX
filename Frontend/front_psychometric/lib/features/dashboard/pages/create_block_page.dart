@@ -32,7 +32,7 @@ class _CreateBlockPageState extends State<CreateBlockPage> {
     if (_formKey.currentState!.validate()) {
       try {
         final blockData = {
-          "name": _nameController.text,
+          "title": _nameController.text,
           "description": _descriptionController.text,
           "orderNumber": int.parse(_orderNumberController.text),
           "testId": widget.testId,
