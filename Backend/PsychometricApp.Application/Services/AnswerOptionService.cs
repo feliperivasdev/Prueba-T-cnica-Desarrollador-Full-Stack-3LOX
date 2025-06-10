@@ -6,24 +6,24 @@ using PsychometricApp.Domain.Entities;
 
 namespace PsychometricApp.Application.Services;
 
-public class "AnswerOptions"ervice : I"AnswerOptions"ervice
+public class AnswerOptionService : IAnswerOptionService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
 
-    public "AnswerOptions"ervice(AppDbCon"Text" con"Text")
+    public AnswerOptionService(AppDbContext context)
     {
-        _con"Text" = con"Text";
+        _context = context;
     }
 
     public async Task<IEnumerable<AnswerOptionDto>> GetAllAsync()
     {
-        return await _con"Text"."AnswerOptions"
+        return await _context.AnswerOptions
             .Select(a => new AnswerOptionDto
             {
                 Id = a.Id,
-                "QuestionId" = a."QuestionId",
+                QuestionId = a.QuestionId,
                 Value = a.Value,
-                "Text" = a."Text",
+                Text = a.Text,
                 OrderNumber = a.OrderNumber
             })
             .ToListAsync();
@@ -31,29 +31,29 @@ public class "AnswerOptions"ervice : I"AnswerOptions"ervice
 
     public async Task<AnswerOptionDto?> GetByIdAsync(int id)
     {
-        var a = await _con"Text"."AnswerOptions".FindAsync(id);
+        var a = await _context.AnswerOptions.FindAsync(id);
         if (a == null) return null;
 
         return new AnswerOptionDto
         {
             Id = a.Id,
-            "QuestionId" = a."QuestionId",
+            QuestionId = a.QuestionId,
             Value = a.Value,
-            "Text" = a."Text",
+            Text = a.Text,
             OrderNumber = a.OrderNumber
         };
     }
 
-    public async Task<IEnumerable<AnswerOptionDto>> GetBy"QuestionId"Async(int "QuestionId")
+    public async Task<IEnumerable<AnswerOptionDto>> GetByQuestionIdAsync(int questionId)
     {
-        return await _con"Text"."AnswerOptions"
-            .Where(a => a."QuestionId" == "QuestionId")
+        return await _context.AnswerOptions
+            .Where(a => a.QuestionId == questionId)
             .Select(a => new AnswerOptionDto
             {
                 Id = a.Id,
-                "QuestionId" = a."QuestionId",
+                QuestionId = a.QuestionId,
                 Value = a.Value,
-                "Text" = a."Text",
+                Text = a.Text,
                 OrderNumber = a.OrderNumber
             })
             .ToListAsync();
@@ -63,14 +63,14 @@ public class "AnswerOptions"ervice : I"AnswerOptions"ervice
     {
         var a = new AnswerOption
         {
-            "QuestionId" = dto."QuestionId",
+            QuestionId = dto.QuestionId,
             Value = dto.Value,
-            "Text" = dto."Text",
+            Text = dto.Text,
             OrderNumber = dto.OrderNumber
         };
 
-        _con"Text"."AnswerOptions".Add(a);
-        await _con"Text".SaveChangesAsync();
+        _context.AnswerOptions.Add(a);
+        await _context.SaveChangesAsync();
 
         dto.Id = a.Id;
         return dto;
@@ -78,26 +78,26 @@ public class "AnswerOptions"ervice : I"AnswerOptions"ervice
 
     public async Task<bool> UpdateAsync(int id, AnswerOptionDto dto)
     {
-        var a = await _con"Text"."AnswerOptions".FindAsync(id);
+        var a = await _context.AnswerOptions.FindAsync(id);
         if (a == null) return false;
 
-        a."QuestionId" = dto."QuestionId";
+        a.QuestionId = dto.QuestionId;
         a.Value = dto.Value;
-        a."Text" = dto."Text";
+        a.Text = dto.Text;
         a.OrderNumber = dto.OrderNumber;
 
-        _con"Text"."AnswerOptions".Update(a);
-        await _con"Text".SaveChangesAsync();
+        _context.AnswerOptions.Update(a);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var a = await _con"Text"."AnswerOptions".FindAsync(id);
+        var a = await _context.AnswerOptions.FindAsync(id);
         if (a == null) return false;
 
-        _con"Text"."AnswerOptions".Remove(a);
-        await _con"Text".SaveChangesAsync();
+        _context.AnswerOptions.Remove(a);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

@@ -10,9 +10,9 @@ namespace PsychometricApp.WebApi.Controllers;
 [Route("api/[controller]")]
 public class AnswerOptionController : ControllerBase
 {
-    private readonly I"AnswerOptions"ervice _service;
+    private readonly IAnswerOptionService _service;
 
-    public AnswerOptionController(I"AnswerOptions"ervice service)
+    public AnswerOptionController(IAnswerOptionService service)
     {
         _service = service;
     }
@@ -34,11 +34,11 @@ public class AnswerOptionController : ControllerBase
         return Ok(option);
     }
 
-    [HttpGet("ByQuestion/{"QuestionId"}")]
+    [HttpGet("ByQuestion/{questionId}")]
     [Authorize(Roles = "assessment,corporate,admin")]
-    public async Task<IActionResult> GetBy"QuestionId"(int "QuestionId")
+    public async Task<IActionResult> GetByQuestionId(int questionId)
     {
-        var options = await _service.GetBy"QuestionId"Async("QuestionId");
+        var options = await _service.GetByQuestionIdAsync(questionId);
         return Ok(options);
     }
 

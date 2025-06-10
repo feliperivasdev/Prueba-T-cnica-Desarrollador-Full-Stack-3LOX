@@ -6,16 +6,16 @@ using PsychometricApp.Domain.Entities;
 
 public class QuestionBlockService : IQuestionBlockService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
 
-    public QuestionBlockService(AppDbCon"Text" con"Text")
+    public QuestionBlockService(AppDbContext context)
     {
-        _con"Text" = con"Text";
+        _context = context;
     }
 
     public async Task<IEnumerable<QuestionBlockDto>> GetAllAsync()
     {
-        return await _con"Text".QuestionBlocks
+        return await _context.QuestionBlocks
             .Select(qb => new QuestionBlockDto
             {
                 Id = qb.Id,
@@ -29,7 +29,7 @@ public class QuestionBlockService : IQuestionBlockService
 
     public async Task<QuestionBlockDto?> GetByIdAsync(int id)
     {
-        var qb = await _con"Text".QuestionBlocks.FindAsync(id);
+        var qb = await _context.QuestionBlocks.FindAsync(id);
         if (qb == null) return null;
 
         return new QuestionBlockDto
@@ -44,7 +44,7 @@ public class QuestionBlockService : IQuestionBlockService
 
     public async Task<IEnumerable<QuestionBlockDto>> GetByTestIdAsync(int testId)
     {
-        return await _con"Text".QuestionBlocks
+        return await _context.QuestionBlocks
             .Where(qb => qb.TestId == testId)
             .Select(qb => new QuestionBlockDto
             {
@@ -67,8 +67,8 @@ public class QuestionBlockService : IQuestionBlockService
             OrderNumber = dto.OrderNumber
         };
 
-        _con"Text".QuestionBlocks.Add(qb);
-        await _con"Text".SaveChangesAsync();
+        _context.QuestionBlocks.Add(qb);
+        await _context.SaveChangesAsync();
 
         dto.Id = qb.Id;
         return dto;
@@ -76,7 +76,7 @@ public class QuestionBlockService : IQuestionBlockService
 
     public async Task<bool> UpdateAsync(int id, QuestionBlockDto dto)
     {
-        var qb = await _con"Text".QuestionBlocks.FindAsync(id);
+        var qb = await _context.QuestionBlocks.FindAsync(id);
         if (qb == null) return false;
 
         qb.TestId = dto.TestId;
@@ -84,18 +84,18 @@ public class QuestionBlockService : IQuestionBlockService
         qb.Description = dto.Description;
         qb.OrderNumber = dto.OrderNumber;
 
-        _con"Text".QuestionBlocks.Update(qb);
-        await _con"Text".SaveChangesAsync();
+        _context.QuestionBlocks.Update(qb);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var qb = await _con"Text".QuestionBlocks.FindAsync(id);
+        var qb = await _context.QuestionBlocks.FindAsync(id);
         if (qb == null) return false;
 
-        _con"Text".QuestionBlocks.Remove(qb);
-        await _con"Text".SaveChangesAsync();
+        _context.QuestionBlocks.Remove(qb);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

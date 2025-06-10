@@ -8,26 +8,27 @@ using PsychometricApp.Domain.Entities;
 using PsychometricApp.Infrastructure.Persistence;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System."Text";
+using System.Text;
+
 
 namespace PsychometricApp.Application.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
     private readonly IConfiguration _config;
     private readonly IPasswordHasher<User> _passwordHasher;
 
-    public AuthService(AppDbCon"Text" con"Text", IConfiguration config)
+    public AuthService(AppDbContext context, IConfiguration config)
     {
-        _con"Text" = con"Text";
+        _context = context;
         _config = config;
         _passwordHasher = new PasswordHasher<User>();
     }
 
     public async Task<bool> RegisterAsync(UserRegisterDto dto)
     {
-        if (await _con"Text".Users.AnyAsync(u => u.Email == dto.Email))
+        if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             return false;
 
         var user = new User
@@ -43,14 +44,14 @@ public class AuthService : IAuthService
 
         user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
 
-        _con"Text".Users.Add(user);
-        await _con"Text".SaveChangesAsync();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<string?> LoginAsync(UserLoginDto dto)
     {
-        var user = await _con"Text".Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (user == null) return null;
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
@@ -83,6 +84,6 @@ public class AuthService : IAuthService
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
-        return await _con"Text".Users.FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 }

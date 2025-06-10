@@ -9,18 +9,18 @@ namespace PsychometricApp.Application.Services;
 
 public class UserService : IUserService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
 
-    public UserService(AppDbCon"Text" con"Text", IPasswordHasher<User> passwordHasher)
+    public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher)
     {
-        _con"Text" = con"Text";
+        _context = context;
         _passwordHasher = passwordHasher;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
     {
-        return await _con"Text".Users
+        return await _context.Users
             .Select(u => new UserDto
             {
                 Id = u.Id,
@@ -38,7 +38,7 @@ public class UserService : IUserService
 
     public async Task<UserDto?> GetByIdAsync(int id)
     {
-        var user = await _con"Text".Users.FindAsync(id);
+        var user = await _context.Users.FindAsync(id);
         if (user == null) return null;
 
         return new UserDto
@@ -78,8 +78,8 @@ public class UserService : IUserService
             throw new ArgumentException("La contraseña es obligatoria para crear un usuario.");
         }
 
-        _con"Text".Users.Add(user);
-        await _con"Text".SaveChangesAsync();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
         userDto.Id = user.Id;
         userDto.CreatedAt = user.CreatedAt;
@@ -92,7 +92,7 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateAsync(int id, UserDto userDto)
     {
-        var user = await _con"Text".Users.FindAsync(id);
+        var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
 
         user.FirstName = userDto.FirstName;
@@ -106,17 +106,17 @@ public class UserService : IUserService
             user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
         }
 
-        await _con"Text".SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var user = await _con"Text".Users.FindAsync(id);
+        var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
 
-        _con"Text".Users.Remove(user);
-        await _con"Text".SaveChangesAsync();
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

@@ -8,17 +8,17 @@ namespace PsychometricApp.Application.Services;
 
 public class TestService : ITestService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
 
-    public TestService(AppDbCon"Text" con"Text")
+    public TestService(AppDbContext context)
     {
-        _con"Text" = con"Text";
+        _context = context;
     }
 
     public async Task<IEnumerable<TestDto>> GetAllAsync()
     {
-        return await _con"Text".Tests
-            .Select(t => new TestDto 
+        return await _context.Tests
+            .Select(t => new TestDto
             {
                 Id = t.Id,
                 Name = t.Name,
@@ -32,7 +32,7 @@ public class TestService : ITestService
 
     public async Task<TestDto?> GetByIdAsync(int id)
     {
-        var test = await _con"Text".Tests.FindAsync(id);
+        var test = await _context.Tests.FindAsync(id);
         if (test == null) return null;
 
         return new TestDto
@@ -57,8 +57,8 @@ public class TestService : ITestService
             CreatedAt = DateTime.UtcNow
         };
 
-        _con"Text".Tests.Add(test);
-        await _con"Text".SaveChangesAsync();
+        _context.Tests.Add(test);
+        await _context.SaveChangesAsync();
 
         dto.Id = test.Id;
         dto.CreatedAt = test.CreatedAt;
@@ -67,7 +67,7 @@ public class TestService : ITestService
 
     public async Task<bool> UpdateAsync(int id, TestDto dto)
     {
-        var test = await _con"Text".Tests.FindAsync(id);
+        var test = await _context.Tests.FindAsync(id);
         if (test == null) return false;
 
         test.Name = dto.Name;
@@ -75,18 +75,18 @@ public class TestService : ITestService
         test.IsActive = dto.IsActive;
         test.CreatedBy = dto.CreatedBy;
 
-        _con"Text".Tests.Update(test);
-        await _con"Text".SaveChangesAsync();
+        _context.Tests.Update(test);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var test = await _con"Text".Tests.FindAsync(id);
+        var test = await _context.Tests.FindAsync(id);
         if (test == null) return false;
 
-        _con"Text".Tests.Remove(test);
-        await _con"Text".SaveChangesAsync();
+        _context.Tests.Remove(test);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

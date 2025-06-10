@@ -6,21 +6,21 @@ using PsychometricApp.Domain.Entities;
 
 public class QuestionService : IQuestionService
 {
-    private readonly AppDbCon"Text" _con"Text";
+    private readonly AppDbContext _context;
 
-    public QuestionService(AppDbCon"Text" con"Text")
+    public QuestionService(AppDbContext context)
     {
-        _con"Text" = con"Text";
+        _context = context;
     }
 
     public async Task<IEnumerable<QuestionDto>> GetAllAsync()
     {
-        return await _con"Text".Questions
+        return await _context.Questions
             .Select(q => new QuestionDto
             {
                 Id = q.Id,
                 QuestionBlockId = q.BlockId,
-                "Text" = q."Text",
+                Text = q.Text,
                 OrderNumber = q.OrderNumber
             })
             .ToListAsync();
@@ -28,27 +28,27 @@ public class QuestionService : IQuestionService
 
     public async Task<QuestionDto?> GetByIdAsync(int id)
     {
-        var q = await _con"Text".Questions.FindAsync(id);
+        var q = await _context.Questions.FindAsync(id);
         if (q == null) return null;
 
         return new QuestionDto
         {
             Id = q.Id,
             QuestionBlockId = q.BlockId,
-            "Text" = q."Text",
+            Text = q.Text,
             OrderNumber = q.OrderNumber
         };
     }
 
     public async Task<IEnumerable<QuestionDto>> GetByBlockIdAsync(int questionBlockId)
     {
-        return await _con"Text".Questions
+        return await _context.Questions
             .Where(q => q.BlockId == questionBlockId)
             .Select(q => new QuestionDto
             {
                 Id = q.Id,
                 QuestionBlockId = q.BlockId,
-                "Text" = q."Text",
+                Text = q.Text,
                 OrderNumber = q.OrderNumber
             })
             .ToListAsync();
@@ -59,12 +59,12 @@ public class QuestionService : IQuestionService
         var q = new Question
         {
             BlockId = dto.QuestionBlockId,
-            "Text" = dto."Text",
+            Text = dto.Text,
             OrderNumber = dto.OrderNumber
         };
 
-        _con"Text".Questions.Add(q);
-        await _con"Text".SaveChangesAsync();
+        _context.Questions.Add(q);
+        await _context.SaveChangesAsync();
 
         dto.Id = q.Id;
         return dto;
@@ -72,25 +72,25 @@ public class QuestionService : IQuestionService
 
     public async Task<bool> UpdateAsync(int id, QuestionDto dto)
     {
-        var q = await _con"Text".Questions.FindAsync(id);
+        var q = await _context.Questions.FindAsync(id);
         if (q == null) return false;
 
         q.BlockId = dto.QuestionBlockId;
-        q."Text" = dto."Text";
+        q.Text = dto.Text;
         q.OrderNumber = dto.OrderNumber;
 
-        _con"Text".Questions.Update(q);
-        await _con"Text".SaveChangesAsync();
+        _context.Questions.Update(q);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var q = await _con"Text".Questions.FindAsync(id);
+        var q = await _context.Questions.FindAsync(id);
         if (q == null) return false;
 
-        _con"Text".Questions.Remove(q);
-        await _con"Text".SaveChangesAsync();
+        _context.Questions.Remove(q);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

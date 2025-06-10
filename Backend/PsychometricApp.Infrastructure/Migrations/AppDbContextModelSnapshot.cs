@@ -10,8 +10,8 @@ using PsychometricApp.Infrastructure.Persistence;
 
 namespace PsychometricApp.Infrastructure.Migrations
 {
-    [DbCon"Text"(typeof(AppDbCon"Text"))]
-    partial class AppDbCon"Text"ModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AppDbContext))]
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -33,22 +33,22 @@ namespace PsychometricApp.Infrastructure.Migrations
                     b.Property<int>("OrderNumber")
                         .HasColumnType("integer");
 
-                    b.Property<int>(""QuestionId"")
+                    b.Property<int>("QuestionId")
                         .HasColumnType("integer");
 
-                    b.Property<string>(""Text"")
+                    b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<int>("Value")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex(""QuestionId"", "OrderNumber")
+                    b.HasIndex("QuestionId", "OrderNumber")
                         .IsUnique();
 
-                    b.ToTable(""AnswerOptions"");
+                    b.ToTable("AnswerOptions");
                 });
 
             modelBuilder.Entity("PsychometricApp.Domain.Entities.BlockResult", b =>
@@ -98,9 +98,9 @@ namespace PsychometricApp.Infrastructure.Migrations
                     b.Property<int>("OrderNumber")
                         .HasColumnType("integer");
 
-                    b.Property<string>(""Text"")
+                    b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -119,11 +119,11 @@ namespace PsychometricApp.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<int>("OrderNumber")
                         .HasColumnType("integer");
@@ -157,14 +157,14 @@ namespace PsychometricApp.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Description")
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -189,26 +189,26 @@ namespace PsychometricApp.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserType")
                         .IsRequired()
-                        .HasColumnType(""Text"");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -228,7 +228,7 @@ namespace PsychometricApp.Infrastructure.Migrations
                     b.Property<int>("AnswerOptionId")
                         .HasColumnType("integer");
 
-                    b.Property<int>(""QuestionId"")
+                    b.Property<int>("QuestionId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("RespondedAt")
@@ -244,9 +244,9 @@ namespace PsychometricApp.Infrastructure.Migrations
 
                     b.HasIndex("AnswerOptionId");
 
-                    b.HasIndex(""QuestionId"");
+                    b.HasIndex("QuestionId");
 
-                    b.HasIndex("UserId", ""QuestionId"")
+                    b.HasIndex("UserId", "QuestionId")
                         .IsUnique();
 
                     b.ToTable("UserResponses");
@@ -255,8 +255,8 @@ namespace PsychometricApp.Infrastructure.Migrations
             modelBuilder.Entity("PsychometricApp.Domain.Entities.AnswerOption", b =>
                 {
                     b.HasOne("PsychometricApp.Domain.Entities.Question", "Question")
-                        .WithMany(""AnswerOptions"")
-                        .HasForeignKey(""QuestionId"")
+                        .WithMany("AnswerOptions")
+                        .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -335,7 +335,7 @@ namespace PsychometricApp.Infrastructure.Migrations
 
                     b.HasOne("PsychometricApp.Domain.Entities.Question", "Question")
                         .WithMany("UserResponses")
-                        .HasForeignKey(""QuestionId"")
+                        .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -359,7 +359,7 @@ namespace PsychometricApp.Infrastructure.Migrations
 
             modelBuilder.Entity("PsychometricApp.Domain.Entities.Question", b =>
                 {
-                    b.Navigation(""AnswerOptions"");
+                    b.Navigation("AnswerOptions");
 
                     b.Navigation("UserResponses");
                 });
