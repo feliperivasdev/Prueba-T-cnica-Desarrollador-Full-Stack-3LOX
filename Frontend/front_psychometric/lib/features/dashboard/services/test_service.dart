@@ -99,7 +99,7 @@ class TestService {
         body: jsonEncode(testData),
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Error al actualizar el test: ${response.statusCode}');
       }
     } catch (e) {

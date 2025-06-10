@@ -6,6 +6,7 @@ import 'dart:html' as html;
 import '../services/user_response_service.dart';
 import '../services/answer_option_service.dart';
 import '../services/block_result_service.dart';
+import 'edit_question_page.dart';
 
 class QuestionPage extends StatefulWidget {
   final int blockId;
@@ -97,7 +98,7 @@ class _QuestionPageState extends State<QuestionPage> {
       appBar: AppBar(
         title: Text(widget.blockName),
       ),
-      floatingActionButton: (userRole == 'corporate' || userRole == 'admin')
+      floatingActionButton: (userRole == 'admin')
           ? FloatingActionButton(
               onPressed: () async {
                 final result = await Navigator.push(
@@ -211,14 +212,24 @@ class _QuestionPageState extends State<QuestionPage> {
                       ),
                     );
                   },
-                  trailing: (userRole == 'corporate' || userRole == 'admin')
+                  trailing: (userRole == 'admin')
                       ? Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                // TODO: Implementar edición de pregunta
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditQuestionPage(question: question),
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {
+                                    _loadQuestions();
+                                  });
+                                }
                               },
                             ),
                             IconButton(

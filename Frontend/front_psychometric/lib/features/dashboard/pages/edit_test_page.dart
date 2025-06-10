@@ -41,12 +41,14 @@ class _EditTestPageState extends State<EditTestPage> {
     setState(() => _isLoading = true);
     try {
       await _testService.updateTest(
-        id: widget.test['id'],
-        name: _nameController.text,
-        description: _descriptionController.text,
-        isActive: _isActive,
-        creatorId: _creatorId,
-        createdAt: _createdAt,
+        widget.test['id'],
+        {
+          "name": _nameController.text,
+          "description": _descriptionController.text,
+          "isActive": _isActive,
+          "creatorId": _creatorId,
+          "createdAt": _createdAt,
+        },
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

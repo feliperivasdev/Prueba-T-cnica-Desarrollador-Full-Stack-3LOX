@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/test_service.dart';
 import 'create_test_page.dart';
 import 'question_block_page.dart';
+import 'edit_test_page.dart';
 import 'dart:html' as html;
 
 class TestPage extends StatefulWidget {
@@ -82,8 +83,18 @@ class _TestPageState extends State<TestPage> {
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Implementar edición de test
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditTestPage(test: test),
+                              ),
+                            );
+                            if (result == true) {
+                              setState(() {
+                                _loadTests();
+                              });
+                            }
                           },
                         ),
                         IconButton(

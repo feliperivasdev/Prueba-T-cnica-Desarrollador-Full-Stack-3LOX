@@ -6,6 +6,7 @@ import 'edit_question_block_page.dart';
 import 'dart:html' as html;
 import 'create_block_page.dart';
 import '../services/block_result_service.dart';
+import '../services/question_block_service.dart';
 
 class QuestionBlockPage extends StatefulWidget {
   final int testId;
@@ -24,6 +25,7 @@ class QuestionBlockPage extends StatefulWidget {
 class _QuestionBlockPageState extends State<QuestionBlockPage> {
   final BlockService _blockService = BlockService();
   final BlockResultService _blockResultService = BlockResultService();
+  final QuestionBlockService _questionBlockService = QuestionBlockService();
   late Future<List<Map<String, dynamic>>> _blocksFuture;
   List<int> _completedBlockIds = [];
   bool _testCompleted = false;
@@ -65,7 +67,7 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
       appBar: AppBar(
         title: Text(widget.testTitle),
       ),
-      floatingActionButton: (userRole == 'corporate' || userRole == 'admin')
+      floatingActionButton: (userRole == 'admin')
           ? FloatingActionButton(
               onPressed: () async {
                 final result = await Navigator.push(
@@ -131,14 +133,24 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
                             _loadCompletedBlocks();
                           }
                         },
-                  trailing: (userRole == 'corporate' || userRole == 'admin')
+                  trailing: (userRole == 'admin')
                       ? Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                // TODO: Implementar edición de bloque
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditQuestionBlockPage(block: block),
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {
+                                    _loadBlocks();
+                                  });
+                                }
                               },
                             ),
                             IconButton(
@@ -148,7 +160,7 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: const Text('Confirmar eliminación'),
-                                    content: const Text('¿Estás seguro de que deseas eliminar este bloque?'),
+                                    content: const Text('¿Estás seguro de que deseas eliminar este bloque? Esto eliminará todas las preguntas y opciones asociadas.',),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context, false),
@@ -163,7 +175,7 @@ class _QuestionBlockPageState extends State<QuestionBlockPage> {
                                 );
                                 if (confirm == true) {
                                   try {
-                                    await _blockService.deleteBlock(block['id']);
+                                    await _questionBlockService.deleteQuestionBlock(block['id']);
                                     setState(() {
                                       _loadBlocks();
                                     });

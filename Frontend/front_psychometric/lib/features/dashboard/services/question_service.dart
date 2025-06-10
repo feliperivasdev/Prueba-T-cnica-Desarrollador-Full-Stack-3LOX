@@ -129,7 +129,7 @@ class QuestionService {
         body: jsonEncode(questionData),
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Error al actualizar la pregunta: ${response.statusCode}');
       }
     } catch (e) {
