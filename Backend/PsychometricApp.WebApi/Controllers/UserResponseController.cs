@@ -5,7 +5,7 @@ using PsychometricApp.Application.Interfaces;
 
 namespace PsychometricApp.WebApi.Controllers;
 
-[Authorize(Roles = "assessment,corporate,admin")]
+
 [ApiController]
 [Route("api/[controller]")]
 public class UserResponseController : ControllerBase
@@ -18,6 +18,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> GetAll()
     {
         var responses = await _service.GetAllAsync();
@@ -25,6 +26,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "assessment,corporate,admin")]
     public async Task<IActionResult> GetById(int id)
     {
         var response = await _service.GetByIdAsync(id);
@@ -33,6 +35,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "assessment")]
     public async Task<IActionResult> Create([FromBody] UserResponseDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -40,7 +43,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "admin,corporate")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UserResponseDto dto)
     {
         if (id != dto.Id) return BadRequest();
@@ -52,7 +55,7 @@ public class UserResponseController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "admin,corporate")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _service.DeleteAsync(id);

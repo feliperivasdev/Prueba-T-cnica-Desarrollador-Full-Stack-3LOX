@@ -5,24 +5,61 @@ import 'dart:html' as html;
 class QuestionService {
   static const _baseUrl = 'http://localhost:5194/api/Question';
 
-  Future<List<Map<String, dynamic>>> fetchQuestionsByBlockId(int blockId) async {
+  Future<List<Map<String, dynamic>>> fetchQuestionsByBlock(int blockId) async {
     final token = html.window.localStorage['jwt_token'];
     if (token == null) {
       throw Exception('No autenticado');
     }
 
-    final response = await http.get(
-      Uri.parse('$_baseUrl/ByBlock/$blockId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      throw Exception('Error al obtener las preguntas del bloque');
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/ByBlock/$blockId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        // Ordenar las preguntas por orderNumber
+        final questions = data.cast<Map<String, dynamic>>().toList();
+        questions.sort((a, b) => a['orderNumber'].compareTo(b['orderNumber']));
+        return questions;
+      } else {
+        throw Exception('Error al obtener las preguntas: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error en fetchQuestionsByBlock: $e');
+      throw Exception('Error al obtener las preguntas: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchQuestionById(int questionId) async {
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/$questionId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al obtener la pregunta: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al obtener la pregunta: $e');
     }
   }
 

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:html' as html;
 
-class UserResponseService {
-  static const _baseUrl = 'http://localhost:5194/api/UserResponse';
+class BlockResultService {
+  static const _baseUrl = 'http://localhost:5194/api/BlockResult';
 
   String? _getUserRole() {
     return html.window.localStorage['user_type'];
@@ -18,27 +18,18 @@ class UserResponseService {
     return _getUserRole() == 'corporate';
   }
 
-  bool _isAssessment() {
-    return _getUserRole() == 'assessment';
-  }
-
-  Future<void> saveUserResponse({
-    required int questionId,
-    required int answerOptionId,
-    required int responseValue,
+  Future<void> saveBlockResult({
+    required int blockId,
+    required double totalScore,
+    required double averageScore,
   }) async {
     if (!_isCorporate()) {
-      throw Exception('No tienes permisos para guardar respuestas');
+      throw Exception('No tienes permisos para guardar resultados de bloque');
     }
 
     final userId = _getUserId();
     if (userId == null) {
       throw Exception('No se encontró el ID del usuario');
-    }
-
-    // Validar que el responseValue esté entre 1 y 5
-    if (responseValue < 1 || responseValue > 5) {
-      throw Exception('El valor de la respuesta debe estar entre 1 y 5');
     }
 
     final token = html.window.localStorage['jwt_token'];
@@ -50,22 +41,23 @@ class UserResponseService {
       },
       body: jsonEncode({
         "userId": userId,
-        "questionId": questionId,
-        "answerOptionId": answerOptionId,
-        "responseValue": responseValue,
-        "respondedAt": DateTime.now().toIso8601String(),
+        "blockId": blockId,
+        "totalScore": totalScore,
+        "averageScore": averageScore,
+        "completedAt": DateTime.now().toIso8601String(),
       }),
     );
-
     if (response.statusCode != 200 && response.statusCode != 201) {
       print('Error en la respuesta: ${response.body}'); // Para debugging
-      throw Exception('Error al guardar la respuesta: ${response.statusCode}');
+      throw Exception('Error al guardar el resultado del bloque: ${response.statusCode}');
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUserResponses() async {
-    if (!_isCorporate() && !_isAssessment()) {
-      throw Exception('No tienes permisos para ver respuestas');
+  Future<Map<String, dynamic>> getBlockResultByUserAndBlock({
+    required int blockId,
+  }) async {
+    if (!_isCorporate()) {
+      throw Exception('No tienes permisos para ver resultados de bloque');
     }
 
     final userId = _getUserId();
@@ -77,19 +69,20 @@ class UserResponseService {
     if (token == null) {
       throw Exception('No autenticado');
     }
+    
     final response = await http.get(
-      Uri.parse('$_baseUrl/by-user/$userId'),
+      Uri.parse('$_baseUrl/ByUserAndBlock?userId=$userId&blockId=$blockId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
+
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
+      return jsonDecode(response.body);
     } else {
       print('Error en la respuesta: ${response.body}'); // Para debugging
-      throw Exception('Error al obtener las respuestas del usuario: ${response.statusCode}');
+      throw Exception('Error al obtener el resultado del bloque: ${response.statusCode}');
     }
   }
-}
+} 

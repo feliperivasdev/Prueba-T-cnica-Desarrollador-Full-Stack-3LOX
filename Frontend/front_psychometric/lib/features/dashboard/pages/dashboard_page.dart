@@ -6,6 +6,7 @@ import 'question_block_page.dart';
 import 'create_test_page.dart'; // Asegúrate de importar la página para crear test
 import 'test_page.dart';
 import 'user_page.dart';
+import 'report_page.dart';
 
 enum DashboardSection {
   bienvenida,
@@ -35,6 +36,9 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     if (_selectedSection == DashboardSection.users) {
       return UserPage();
+    }
+    if (_selectedSection == DashboardSection.blockResults) {
+      return ReportPage();
     }
 
     switch (_selectedSection) {
@@ -115,6 +119,18 @@ class _DashboardPageState extends State<DashboardPage> {
                 onTap: () {
                   setState(() {
                     _selectedSection = DashboardSection.users;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            if (userRole == 'corporate' || userRole == 'admin')
+              ListTile(
+                leading: const FaIcon(FontAwesomeIcons.chartBar),
+                title: const Text('Reportes'),
+                selected: _selectedSection == DashboardSection.blockResults,
+                onTap: () {
+                  setState(() {
+                    _selectedSection = DashboardSection.blockResults;
                   });
                   Navigator.pop(context);
                 },
