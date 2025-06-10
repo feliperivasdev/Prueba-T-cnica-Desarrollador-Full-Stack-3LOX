@@ -14,10 +14,6 @@ class UserResponseService {
     return userIdStr != null ? int.parse(userIdStr) : null;
   }
 
-  bool _isCorporate() {
-    return _getUserRole() == 'corporate';
-  }
-
   bool _isAssessment() {
     return _getUserRole() == 'assessment';
   }
@@ -27,8 +23,8 @@ class UserResponseService {
     required int answerOptionId,
     required int responseValue,
   }) async {
-    if (!_isCorporate()) {
-      throw Exception('No tienes permisos para guardar respuestas');
+    if (!_isAssessment()) {
+      throw Exception('Solo los usuarios de tipo assessment pueden guardar respuestas');
     }
 
     final userId = _getUserId();
@@ -42,30 +38,66 @@ class UserResponseService {
     }
 
     final token = html.window.localStorage['jwt_token'];
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        "userId": userId,
-        "questionId": questionId,
-        "answerOptionId": answerOptionId,
-        "responseValue": responseValue,
-        "respondedAt": DateTime.now().toIso8601String(),
-      }),
-    );
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
 
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      print('Error en la respuesta: ${response.body}'); // Para debugging
-      throw Exception('Error al guardar la respuesta: ${response.statusCode}');
+    // Crear el objeto de respuesta en el formato exacto requerido
+    final responseData = {
+      "userId": userId,
+      "questionId": questionId,
+      "answerOptionId": answerOptionId,
+      "responseValue": responseValue,
+      "respondedAt": DateTime.now().toUtc().toIso8601String(),
+    };
+
+    print('Enviando datos: ${jsonEncode(responseData)}'); // Para debugging
+
+    try {
+      // Intentamos actualizar primero
+      final updateResponse = await http.put(
+        Uri.parse('$_baseUrl/update'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(responseData),
+      );
+
+      // Si la actualización falla (404), intentamos crear
+      if (updateResponse.statusCode == 404) {
+        final createResponse = await http.post(
+          Uri.parse(_baseUrl),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(responseData),
+        );
+
+        print('Create Response status: ${createResponse.statusCode}');
+        print('Create Response body: ${createResponse.body}');
+
+        if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
+          throw Exception('Error al crear la respuesta: ${createResponse.statusCode} - ${createResponse.body}');
+        }
+      } else {
+        print('Update Response status: ${updateResponse.statusCode}');
+        print('Update Response body: ${updateResponse.body}');
+
+        if (updateResponse.statusCode != 200) {
+          throw Exception('Error al actualizar la respuesta: ${updateResponse.statusCode} - ${updateResponse.body}');
+        }
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+      throw Exception('Error al guardar la respuesta: $e');
     }
   }
 
   Future<List<Map<String, dynamic>>> fetchUserResponses() async {
-    if (!_isCorporate() && !_isAssessment()) {
-      throw Exception('No tienes permisos para ver respuestas');
+    if (!_isAssessment()) {
+      throw Exception('Solo los usuarios de tipo assessment pueden ver respuestas');
     }
 
     final userId = _getUserId();
@@ -77,19 +109,28 @@ class UserResponseService {
     if (token == null) {
       throw Exception('No autenticado');
     }
-    final response = await http.get(
-      Uri.parse('$_baseUrl/by-user/$userId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      print('Error en la respuesta: ${response.body}'); // Para debugging
-      throw Exception('Error al obtener las respuestas del usuario: ${response.statusCode}');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/by-user/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Error al obtener las respuestas del usuario: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+      throw Exception('Error al obtener las respuestas: $e');
     }
   }
 }
