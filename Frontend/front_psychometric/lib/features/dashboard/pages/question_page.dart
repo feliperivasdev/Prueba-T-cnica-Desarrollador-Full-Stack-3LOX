@@ -5,6 +5,7 @@ import 'answer_option_page.dart';
 import 'dart:html' as html;
 import '../services/user_response_service.dart';
 import '../services/answer_option_service.dart';
+import '../services/block_result_service.dart';
 
 class QuestionPage extends StatefulWidget {
   final int blockId;
@@ -24,6 +25,7 @@ class _QuestionPageState extends State<QuestionPage> {
   final QuestionService _questionService = QuestionService();
   final UserResponseService _userResponseService = UserResponseService();
   final AnswerOptionService _answerOptionService = AnswerOptionService();
+  final BlockResultService _blockResultService = BlockResultService();
   late Future<List<Map<String, dynamic>>> _questionsFuture;
   Map<int, int> _selectedAnswers = {}; // questionId -> answerOptionId
   Map<int, int> _selectedValues = {}; // questionId -> value (1-5)
@@ -54,16 +56,26 @@ class _QuestionPageState extends State<QuestionPage> {
       return;
     }
     try {
+      double totalScore = 0;
       for (final question in questions) {
         final questionId = question['id'];
         final answerOptionId = _selectedAnswers[questionId]!;
         final responseValue = _selectedValues[questionId]!;
+        totalScore += responseValue;
         await _userResponseService.saveUserResponse(
           questionId: questionId,
           answerOptionId: answerOptionId,
-          responseValue: responseValue, // Ahora sí es el valor 1-5
+          responseValue: responseValue,
         );
       }
+      final averageScore = totalScore / questions.length;
+      print('[BlockResult] Enviando resultado del bloque: blockId=${widget.blockId}, totalScore=$totalScore, averageScore=$averageScore');
+      await _blockResultService.saveBlockResult(
+        blockId: widget.blockId,
+        totalScore: totalScore,
+        averageScore: averageScore,
+      );
+      print('[BlockResult] Resultado del bloque guardado correctamente');
       setState(() {
         _blockCompleted = true;
       });
@@ -72,6 +84,7 @@ class _QuestionPageState extends State<QuestionPage> {
       );
       Navigator.pop(context, true); // Indica al bloque que se completó
     } catch (e) {
+      print('[BlockResult] Error al guardar el resultado del bloque: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar respuestas: $e')),
       );
