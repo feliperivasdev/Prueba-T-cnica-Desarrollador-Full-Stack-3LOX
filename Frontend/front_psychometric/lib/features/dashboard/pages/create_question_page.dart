@@ -29,12 +29,17 @@ class _CreateQuestionPageState extends State<CreateQuestionPage> {
   Future<void> _createQuestion() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // Obtener la lista de preguntas del bloque para calcular el siguiente orderNumber
+        final existingQuestions = await _questionService.fetchQuestionsByBlockId(widget.blockId);
+        final nextOrderNumber = (existingQuestions.isNotEmpty)
+            ? (existingQuestions.map((q) => q['orderNumber'] as int).reduce((a, b) => a > b ? a : b) + 1)
+            : 1;
         final questionData = {
           "questionBlockId": widget.blockId,
           "text": _textController.text,
-          "type": "Likert",
-          "orderNumber": 1, // TODO: Implementar orden dinámico
+          "orderNumber": nextOrderNumber,
         };
+        print('[CREATE_QUESTION] Enviando: ' + questionData.toString());
 
         final createdQuestion = await _questionService.createQuestion(questionData);
         

@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 import '../services/answer_option_service.dart';
+import 'dart:html' as html;
 
-class CreateAnswerOptionPage extends StatefulWidget {
-  final int questionId;
-
-  const CreateAnswerOptionPage({
-    super.key,
-    required this.questionId,
-  });
+class EditAnswerOptionPage extends StatefulWidget {
+  final Map<String, dynamic> option;
+  const EditAnswerOptionPage({super.key, required this.option});
 
   @override
-  State<CreateAnswerOptionPage> createState() => _CreateAnswerOptionPageState();
+  State<EditAnswerOptionPage> createState() => _EditAnswerOptionPageState();
 }
 
-class _CreateAnswerOptionPageState extends State<CreateAnswerOptionPage> {
+class _EditAnswerOptionPageState extends State<EditAnswerOptionPage> {
   final _formKey = GlobalKey<FormState>();
   final _textController = TextEditingController();
   final _valueController = TextEditingController();
-  final _answerOptionService = AnswerOptionService();
+  final AnswerOptionService _answerOptionService = AnswerOptionService();
+  bool _isLoading = false;
+  String userRole = '';
+
+  @override
+  void initState() {
+    super.initState();
+    userRole = html.window.localStorage['user_type'] ?? '';
+    _textController.text = widget.option['text'] ?? '';
+    _valueController.text = widget.option['value']?.toString() ?? '';
+  }
 
   @override
   void dispose() {
@@ -26,39 +33,41 @@ class _CreateAnswerOptionPageState extends State<CreateAnswerOptionPage> {
     super.dispose();
   }
 
-  Future<void> _createAnswerOption() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final optionData = {
+  Future<void> _updateOption() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    try {
+      await _answerOptionService.updateAnswerOption(
+        widget.option['id'],
+        {
+          "id": widget.option['id'],
+          "questionId": widget.option['questionId'],
           "text": _textController.text,
           "value": int.parse(_valueController.text),
-          "questionId": widget.questionId,
-        };
-
-        final createdOption = await _answerOptionService.createAnswerOption(optionData);
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Opción de respuesta creada exitosamente')),
-          );
-          Navigator.pop(context, createdOption);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al crear la opción de respuesta: $e')),
-          );
-        }
+          "orderNumber": widget.option['orderNumber'],
+        },
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opción de respuesta actualizada exitosamente')),
+        );
+        Navigator.pop(context, true);
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar la opción: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crear Nueva Opción de Respuesta'),
-      ),
+      appBar: AppBar(title: const Text('Editar Opción de Respuesta')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -103,8 +112,10 @@ class _CreateAnswerOptionPageState extends State<CreateAnswerOptionPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _createAnswerOption,
-                child: const Text('Crear Opción de Respuesta'),
+                onPressed: (userRole == 'admin' && !_isLoading) ? _updateOption : null,
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Guardar Cambios'),
               ),
             ],
           ),

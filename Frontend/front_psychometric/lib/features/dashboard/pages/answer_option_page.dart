@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/answer_option_service.dart';
 import 'create_answer_option_page.dart';
+import 'edit_answer_option_page.dart';
 import 'dart:html' as html;
 
 class AnswerOptionPage extends StatefulWidget {
@@ -38,7 +39,7 @@ class _AnswerOptionPageState extends State<AnswerOptionPage> {
       appBar: AppBar(
         title: Text('Opciones de Respuesta'),
       ),
-      floatingActionButton: (userRole == 'corporate' || userRole == 'admin')
+      floatingActionButton: (userRole == 'admin')
           ? FloatingActionButton(
               onPressed: () async {
                 final result = await Navigator.push(
@@ -90,16 +91,10 @@ class _AnswerOptionPageState extends State<AnswerOptionPage> {
                       child: ListTile(
                         title: Text(option['text'] ?? 'Sin texto'),
                         subtitle: Text('Valor: ${option['value']}'),
-                        trailing: (userRole == 'corporate' || userRole == 'admin')
+                        trailing: (userRole == 'admin')
                             ? Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () {
-                                      // TODO: Implementar edición de opción
-                                    },
-                                  ),
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     onPressed: () async {
