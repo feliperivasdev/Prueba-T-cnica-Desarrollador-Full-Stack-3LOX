@@ -111,7 +111,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Navigator.pop(context);
               },
             ),
-            if (userRole == 'corporate' || userRole == 'admin')
+            if ( userRole == 'admin')
               ListTile(
                 leading: const FaIcon(FontAwesomeIcons.users),
                 title: const Text('Usuarios'),
@@ -135,7 +135,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Navigator.pop(context);
                 },
               ),
-            // ...agrega más opciones con FaIcon
+            
           ],
         ),
       ),
