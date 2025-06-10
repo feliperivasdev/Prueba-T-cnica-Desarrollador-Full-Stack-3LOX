@@ -5,6 +5,7 @@ import 'dart:html' as html;
 import 'question_block_page.dart';
 import 'create_test_page.dart'; // Asegúrate de importar la página para crear test
 import 'test_page.dart';
+import 'user_page.dart';
 
 enum DashboardSection {
   bienvenida,
@@ -32,6 +33,9 @@ class _DashboardPageState extends State<DashboardPage> {
     if (_selectedSection == DashboardSection.tests) {
       return TestPage();
     }
+    if (_selectedSection == DashboardSection.users) {
+      return UserPage();
+    }
 
     switch (_selectedSection) {
       case DashboardSection.bienvenida:
@@ -51,6 +55,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final nombre = (html.window.localStorage['first_name'] ?? 'Usuario');
+    final userRole = (html.window.localStorage['user_type'] ?? '').toLowerCase();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
@@ -102,6 +107,18 @@ class _DashboardPageState extends State<DashboardPage> {
                 Navigator.pop(context);
               },
             ),
+            if (userRole == 'corporate' || userRole == 'admin')
+              ListTile(
+                leading: const FaIcon(FontAwesomeIcons.users),
+                title: const Text('Usuarios'),
+                selected: _selectedSection == DashboardSection.users,
+                onTap: () {
+                  setState(() {
+                    _selectedSection = DashboardSection.users;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
             // ...agrega más opciones con FaIcon
           ],
         ),
