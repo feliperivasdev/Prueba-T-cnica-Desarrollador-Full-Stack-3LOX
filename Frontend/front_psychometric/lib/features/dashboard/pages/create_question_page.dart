@@ -1,38 +1,42 @@
 import 'package:flutter/material.dart';
-import '../services/test_service.dart';
+import '../services/question_service.dart';
 import 'dart:html' as html;
 
-class CreateTestPage extends StatefulWidget {
-  const CreateTestPage({super.key});
+class CreateQuestionPage extends StatefulWidget {
+  final int blockId;
+  final int orderNumber;
+
+  const CreateQuestionPage({
+    super.key,
+    required this.blockId,
+    required this.orderNumber,
+  });
 
   @override
-  State<CreateTestPage> createState() => _CreateTestPageState();
+  State<CreateQuestionPage> createState() => _CreateQuestionPageState();
 }
 
-class _CreateTestPageState extends State<CreateTestPage> {
+class _CreateQuestionPageState extends State<CreateQuestionPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descController = TextEditingController();
-  bool _isActive = true;
+  final _textController = TextEditingController();
   bool _loading = false;
   String? _error;
 
-  final TestService _testService = TestService();
+  final QuestionService _questionService = QuestionService();
 
   @override
   Widget build(BuildContext context) {
     final role = html.window.localStorage['user_type'] ?? '';
-    final userId = int.tryParse(html.window.localStorage['user_id'] ?? '0') ?? 0;
 
     if (role != 'corporate' && role != 'admin') {
       return Scaffold(
-        appBar: AppBar(title: const Text('Crear Test')),
-        body: const Center(child: Text('No tienes permisos para crear un test.')),
+        appBar: AppBar(title: const Text('Crear Pregunta')),
+        body: const Center(child: Text('No tienes permisos para crear una pregunta.')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Test')),
+      appBar: AppBar(title: const Text('Crear Pregunta')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -40,19 +44,13 @@ class _CreateTestPageState extends State<CreateTestPage> {
           child: Column(
             children: [
               TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
+                controller: _textController,
+                decoration: const InputDecoration(
+                  labelText: 'Texto de la Pregunta',
+                  hintText: 'Ingrese el texto de la pregunta',
+                ),
                 validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-              ),
-              TextFormField(
-                controller: _descController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-              ),
-              SwitchListTile(
-                title: const Text('Activo'),
-                value: _isActive,
-                onChanged: (v) => setState(() => _isActive = v),
+                maxLines: 3,
               ),
               if (_error != null)
                 Padding(
@@ -70,18 +68,18 @@ class _CreateTestPageState extends State<CreateTestPage> {
                           _error = null;
                         });
                         try {
-                          final createdTest = await _testService.createTest(
-                            name: _nameController.text.trim(),
-                            description: _descController.text.trim(),
-                            isActive: _isActive,
+                          final createdQuestion = await _questionService.createQuestion(
+                            text: _textController.text.trim(),
+                            blockId: widget.blockId,
+                            orderNumber: widget.orderNumber,
                           );
                           
-                          if (!createdTest.containsKey('id')) {
-                            throw Exception('No se pudo obtener el ID del test creado');
+                          if (!createdQuestion.containsKey('id')) {
+                            throw Exception('No se pudo obtener el ID de la pregunta creada');
                           }
 
                           if (mounted) {
-                            Navigator.pop(context, createdTest);
+                            Navigator.pop(context, createdQuestion);
                           }
                         } catch (e) {
                           setState(() {
@@ -95,12 +93,18 @@ class _CreateTestPageState extends State<CreateTestPage> {
                       },
                 child: _loading
                     ? const CircularProgressIndicator()
-                    : const Text('Crear Test'),
+                    : const Text('Crear Pregunta'),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 }

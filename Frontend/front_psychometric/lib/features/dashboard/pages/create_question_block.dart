@@ -1,38 +1,41 @@
 import 'package:flutter/material.dart';
-import '../services/test_service.dart';
+import '../services/question_block_service.dart';
 import 'dart:html' as html;
 
-class CreateTestPage extends StatefulWidget {
-  const CreateTestPage({super.key});
+class CreateQuestionBlockPage extends StatefulWidget {
+  final int testId;
+
+  const CreateQuestionBlockPage({
+    super.key,
+    required this.testId,
+  });
 
   @override
-  State<CreateTestPage> createState() => _CreateTestPageState();
+  State<CreateQuestionBlockPage> createState() => _CreateQuestionBlockPageState();
 }
 
-class _CreateTestPageState extends State<CreateTestPage> {
+class _CreateQuestionBlockPageState extends State<CreateQuestionBlockPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
-  bool _isActive = true;
   bool _loading = false;
   String? _error;
 
-  final TestService _testService = TestService();
+  final QuestionBlockService _blockService = QuestionBlockService();
 
   @override
   Widget build(BuildContext context) {
     final role = html.window.localStorage['user_type'] ?? '';
-    final userId = int.tryParse(html.window.localStorage['user_id'] ?? '0') ?? 0;
 
     if (role != 'corporate' && role != 'admin') {
       return Scaffold(
-        appBar: AppBar(title: const Text('Crear Test')),
-        body: const Center(child: Text('No tienes permisos para crear un test.')),
+        appBar: AppBar(title: const Text('Crear Bloque de Preguntas')),
+        body: const Center(child: Text('No tienes permisos para crear un bloque de preguntas.')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Test')),
+      appBar: AppBar(title: const Text('Crear Bloque de Preguntas')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -41,18 +44,14 @@ class _CreateTestPageState extends State<CreateTestPage> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
+                decoration: const InputDecoration(labelText: 'Nombre del Bloque'),
                 validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
               ),
               TextFormField(
                 controller: _descController,
                 decoration: const InputDecoration(labelText: 'Descripción'),
                 validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-              ),
-              SwitchListTile(
-                title: const Text('Activo'),
-                value: _isActive,
-                onChanged: (v) => setState(() => _isActive = v),
+                maxLines: 3,
               ),
               if (_error != null)
                 Padding(
@@ -70,18 +69,18 @@ class _CreateTestPageState extends State<CreateTestPage> {
                           _error = null;
                         });
                         try {
-                          final createdTest = await _testService.createTest(
+                          final createdBlock = await _blockService.createQuestionBlock(
                             name: _nameController.text.trim(),
                             description: _descController.text.trim(),
-                            isActive: _isActive,
+                            testId: widget.testId,
                           );
                           
-                          if (!createdTest.containsKey('id')) {
-                            throw Exception('No se pudo obtener el ID del test creado');
+                          if (!createdBlock.containsKey('id')) {
+                            throw Exception('No se pudo obtener el ID del bloque creado');
                           }
 
                           if (mounted) {
-                            Navigator.pop(context, createdTest);
+                            Navigator.pop(context, createdBlock);
                           }
                         } catch (e) {
                           setState(() {
@@ -95,12 +94,19 @@ class _CreateTestPageState extends State<CreateTestPage> {
                       },
                 child: _loading
                     ? const CircularProgressIndicator()
-                    : const Text('Crear Test'),
+                    : const Text('Crear Bloque'),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    super.dispose();
   }
 }

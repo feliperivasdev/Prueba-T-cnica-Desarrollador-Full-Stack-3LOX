@@ -29,7 +29,6 @@ class TestService {
     }
   }
 
- 
   Future<Map<String, dynamic>> createTest({
     required String name,
     required String description,
@@ -51,16 +50,82 @@ class TestService {
         "name": name,
         "description": description,
         "isActive": isActive,
-        "creatorId": creatorId, // <-- CAMBIO AQUÍ
+        "creatorId": creatorId,
       }),
     );
 
     if (response.statusCode == 201) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      if (!responseData.containsKey('id')) {
+        throw Exception('La respuesta del servidor no incluye el ID del test');
+      }
+      return responseData;
     } else if (response.statusCode == 400) {
-      throw Exception('Datos inválidos');
+      final errorData = jsonDecode(response.body);
+      throw Exception('Datos inválidos: ${errorData['message'] ?? 'Error desconocido'}');
     } else {
-      throw Exception('Error al crear el test');
+      throw Exception('Error al crear el test: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updateTest({
+    required int id,
+    required String name,
+    required String description,
+    required bool isActive,
+    required int creatorId,
+    required String createdAt,
+  }) async {
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    final body = {
+      "id": id,
+      "name": name,
+      "description": description,
+      "isActive": isActive,
+      "creatorId": creatorId,
+      "createdAt": createdAt,
+    };
+
+    final response = await http.put(
+      Uri.parse('$_baseUrl/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 204) {
+      try {
+        final errorData = jsonDecode(response.body);
+        throw Exception('Error al actualizar el test: ${errorData['message'] ?? 'Error desconocido'}');
+      } catch (_) {
+        throw Exception('Error al actualizar el test: ${response.body}');
+      }
+    }
+  }
+
+  Future<void> deleteTest(int id) async {
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      final errorData = jsonDecode(response.body);
+      throw Exception('Error al eliminar el test: ${errorData['message'] ?? 'Error desconocido'}');
     }
   }
 }
