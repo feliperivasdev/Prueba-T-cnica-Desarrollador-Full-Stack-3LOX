@@ -127,6 +127,76 @@ class _ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (userRole == 'assessment') {
+      // Mostrar solo los resultados individuales del assessment
+      final userId = int.tryParse(html.window.localStorage['user_id'] ?? '');
+      return FutureBuilder<List<Map<String, dynamic>>>(
+        future: _blockResultService.getBlockResultsReport(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final allResults = snapshot.data ?? [];
+          final myResults = allResults.where((r) => r['userId'] == userId).toList();
+          if (myResults.isEmpty) {
+            return const Center(child: Text('Aún no tienes resultados para mostrar.'));
+          }
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Mis Resultados',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        const Text('Vista: '),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          label: const Text('Gráfica'),
+                          selected: _showGraph,
+                          onSelected: (selected) {
+                            setState(() {
+                              _showGraph = selected;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          label: const Text('Tabla'),
+                          selected: !_showGraph,
+                          onSelected: (selected) {
+                            setState(() {
+                              _showGraph = !selected;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _showGraph
+                      ? _buildResultsGraphCustom(myResults)
+                      : _buildResultsTableCustom(myResults),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     if (userRole != 'corporate' && userRole != 'admin') {
       return const Center(child: Text('No tienes permisos para ver reportes.'));
     }
@@ -227,6 +297,90 @@ class _ReportPageState extends State<ReportPage> {
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _buildResultsTableCustom(List<Map<String, dynamic>> results) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('Bloque')),
+          DataColumn(label: Text('Puntuación Total')),
+          DataColumn(label: Text('Promedio')),
+          DataColumn(label: Text('Fecha')),
+        ],
+        rows: results.map((result) {
+          return DataRow(
+            cells: [
+              DataCell(Text(result['blockName'] ?? '')),
+              DataCell(Text(result['totalScore'].toString())),
+              DataCell(Text(result['averageScore'].toStringAsFixed(2))),
+              DataCell(Text(DateTime.parse(result['completedAt']).toLocal().toString())),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildResultsGraphCustom(List<Map<String, dynamic>> results) {
+    if (results.isEmpty) {
+      return const Center(child: Text('No hay datos para mostrar'));
+    }
+    // Agrupar resultados por bloque
+    final Map<String, List<double>> blockAverages = {};
+    for (var result in results) {
+      final blockName = result['blockName'] ?? 'Sin nombre';
+      if (!blockAverages.containsKey(blockName)) {
+        blockAverages[blockName] = [];
+      }
+      blockAverages[blockName]!.add(result['averageScore']);
+    }
+    // Calcular promedio por bloque
+    final List<MapEntry<String, double>> blockData = blockAverages.entries.map((entry) {
+      final average = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      return MapEntry(entry.key, average);
+    }).toList();
+    return ListView.builder(
+      itemCount: blockData.length,
+      itemBuilder: (context, index) {
+        final entry = blockData[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.key,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: entry.value / 5, // Asumiendo que el máximo es 5
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    entry.value >= 4 ? Colors.green :
+                    entry.value >= 3 ? Colors.blue :
+                    entry.value >= 2 ? Colors.orange :
+                    Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Promedio: ${entry.value.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 } 
