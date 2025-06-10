@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
 import '../services/block_result_service.dart';
+import '../services/block_service.dart';
+import '../services/test_service.dart';
 import 'dart:html' as html;
 
 class ReportPage extends StatefulWidget {
@@ -13,6 +15,8 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage> {
   final UserService _userService = UserService();
   final BlockResultService _blockResultService = BlockResultService();
+  final BlockService _blockService = BlockService();
+  final TestService _testService = TestService();
   late Future<List<Map<String, dynamic>>> _usersFuture;
   List<Map<String, dynamic>> _users = [];
   Map<String, dynamic>? _selectedUser;
@@ -36,6 +40,45 @@ class _ReportPageState extends State<ReportPage> {
     } catch (e) {
       print('Error al obtener los resultados: $e');
     }
+  }
+
+  Future<List<Map<String, dynamic>>> enrichResultsWithTestName(List<Map<String, dynamic>> results) async {
+    final Map<int, String> testNameCache = {};
+    final Map<int, int> blockTestCache = {};
+    final Map<int, String> blockNameCache = {};
+    final tests = await _testService.fetchTests();
+    for (var result in results) {
+      final blockId = result['blockId'];
+      if (blockId == null) continue;
+      int? testId = blockTestCache[blockId];
+      String? blockName = blockNameCache[blockId];
+      if (testId == null || blockName == null) {
+        final block = await _blockService.fetchBlockById(blockId);
+        testId = block['testId'];
+        blockName = block['title'] ?? 'Bloque desconocido';
+        if (testId != null) {
+          blockTestCache[blockId] = testId;
+        }
+        blockNameCache[blockId] = blockName ?? 'Bloque desconocido';
+      }
+      if (testId == null) {
+        result['testName'] = 'Sin nombre';
+        result['blockName'] = blockName ?? 'Bloque desconocido';
+        continue;
+      }
+      String? testName = testNameCache[testId];
+      if (testName == null) {
+        final found = tests.firstWhere(
+          (t) => t['id'] == testId,
+          orElse: () => {'name': 'Sin nombre'},
+        );
+        testName = found['name'] ?? 'Sin nombre';
+        testNameCache[testId] = testName ?? 'Sin nombre';
+      }
+      result['testName'] = testName;
+      result['blockName'] = blockName ?? 'Bloque desconocido';
+    }
+    return results;
   }
 
   Widget _buildResultsTable() {
@@ -128,10 +171,9 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     if (userRole == 'assessment') {
-      // Mostrar solo los resultados individuales del assessment
       final userId = int.tryParse(html.window.localStorage['user_id'] ?? '');
       return FutureBuilder<List<Map<String, dynamic>>>(
-        future: _blockResultService.getBlockResultsReport(),
+        future: _blockResultService.getBlockResultsReport().then((results) => enrichResultsWithTestName(results.where((r) => r['userId'] == userId).toList())),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -139,8 +181,7 @@ class _ReportPageState extends State<ReportPage> {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-          final allResults = snapshot.data ?? [];
-          final myResults = allResults.where((r) => r['userId'] == userId).toList();
+          final myResults = snapshot.data ?? [];
           if (myResults.isEmpty) {
             return const Center(child: Text('Aún no tienes resultados para mostrar.'));
           }
@@ -301,25 +342,32 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   Widget _buildResultsTableCustom(List<Map<String, dynamic>> results) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Bloque')),
-          DataColumn(label: Text('Puntuación Total')),
-          DataColumn(label: Text('Promedio')),
-          DataColumn(label: Text('Fecha')),
-        ],
-        rows: results.map((result) {
-          return DataRow(
-            cells: [
-              DataCell(Text(result['blockName'] ?? '')),
-              DataCell(Text(result['totalScore'].toString())),
-              DataCell(Text(result['averageScore'].toStringAsFixed(2))),
-              DataCell(Text(DateTime.parse(result['completedAt']).toLocal().toString())),
-            ],
-          );
-        }).toList(),
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1000),
+        padding: const EdgeInsets.only(left: 100),
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Bloque')),
+            DataColumn(label: Text('Puntuación Total')),
+            DataColumn(label: Text('Promedio')),
+            DataColumn(label: Text('Fecha')),
+            DataColumn(label: Text('Test')),
+          ],
+          rows: results.map((result) {
+            final fecha = DateTime.parse(result['completedAt']).toLocal();
+            final fechaStr = '${fecha.day.toString().padLeft(2, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.year}';
+            return DataRow(
+              cells: [
+                DataCell(Text(result['blockName'] ?? 'Bloque desconocido')),
+                DataCell(Text(result['totalScore'].toString())),
+                DataCell(Text(result['averageScore'].toStringAsFixed(2))),
+                DataCell(Text(fechaStr)),
+                DataCell(Text(result['testName'] ?? '')),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -328,7 +376,7 @@ class _ReportPageState extends State<ReportPage> {
     if (results.isEmpty) {
       return const Center(child: Text('No hay datos para mostrar'));
     }
-    // Agrupar resultados por bloque
+    final testName = results.first['testName'] ?? 'Test sin nombre';
     final Map<String, List<double>> blockAverages = {};
     for (var result in results) {
       final blockName = result['blockName'] ?? 'Sin nombre';
@@ -337,50 +385,61 @@ class _ReportPageState extends State<ReportPage> {
       }
       blockAverages[blockName]!.add(result['averageScore']);
     }
-    // Calcular promedio por bloque
     final List<MapEntry<String, double>> blockData = blockAverages.entries.map((entry) {
       final average = entry.value.reduce((a, b) => a + b) / entry.value.length;
       return MapEntry(entry.key, average);
     }).toList();
-    return ListView.builder(
-      itemCount: blockData.length,
-      itemBuilder: (context, index) {
-        final entry = blockData[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.key,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Test: $testName',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: ListView.builder(
+            itemCount: blockData.length,
+            itemBuilder: (context, index) {
+              final entry = blockData[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.key,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: entry.value / 5, // Asumiendo que el máximo es 5
+                        backgroundColor: Colors.grey[200],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          entry.value >= 4 ? Colors.green :
+                          entry.value >= 3 ? Colors.blue :
+                          entry.value >= 2 ? Colors.orange :
+                          Colors.red,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Promedio: ${entry.value.toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: entry.value / 5, // Asumiendo que el máximo es 5
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    entry.value >= 4 ? Colors.green :
-                    entry.value >= 3 ? Colors.blue :
-                    entry.value >= 2 ? Colors.orange :
-                    Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Promedio: ${entry.value.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 } 
