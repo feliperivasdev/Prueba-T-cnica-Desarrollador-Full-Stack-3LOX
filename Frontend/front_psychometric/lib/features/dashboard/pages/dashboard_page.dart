@@ -100,6 +100,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Navigator.pop(context);
               },
             ),
+            if (userRole == 'admin' || userRole == 'assessment')
             ListTile(
               leading: const FaIcon(FontAwesomeIcons.clipboardList),
               title: const Text('Tests'),
@@ -123,7 +124,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   Navigator.pop(context);
                 },
               ),
-            if (userRole == 'corporate' || userRole == 'admin')
+            if (userRole == 'corporate' || userRole == 'admin' || userRole == 'assessment')
+            
               ListTile(
                 leading: const FaIcon(FontAwesomeIcons.chartBar),
                 title: const Text('Reportes'),

@@ -35,7 +35,7 @@ class SideMenu extends StatelessWidget {
               ),
             ),
           ),
-          if (isAdmin || isCorporate) ...[
+          if (isAdmin ) ...[
             ListTile(
               leading: const Icon(Icons.assessment),
               title: const Text('Tests'),
