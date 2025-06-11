@@ -121,6 +121,11 @@ class _AnswerOptionPageState extends State<AnswerOptionPage> {
                                           setState(() {
                                             _loadOptions();
                                           });
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Opción de respuesta borrada correctamente')),
+                                            );
+                                          }
                                         } catch (e) {
                                           if (mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(

@@ -169,8 +169,8 @@ class AnswerOptionService {
         },
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Error al eliminar la opción de respuesta: ${response.statusCode}');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Error al eliminar la opción de respuesta: [${response.statusCode}]');
       }
     } catch (e) {
       throw Exception('Error al eliminar la opción de respuesta: $e');
