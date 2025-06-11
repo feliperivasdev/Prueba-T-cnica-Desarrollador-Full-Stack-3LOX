@@ -79,12 +79,26 @@ class _UserPageState extends State<UserPage> {
   }
 
   Widget _buildUserCard(Map<String, dynamic> user) {
+    String corporateName = '';
+    if (user['corporate'] != null) {
+      corporateName = (user['corporate']['firstName'] ?? '') + ' ' + (user['corporate']['lastName'] ?? '');
+    } else if (user['corporateId'] != null && user['corporateId'] != 0) {
+      corporateName = 'ID: ${user['corporateId']}';
+    } else {
+      corporateName = 'Sin corporate';
+    }
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: ListTile(
         leading: const Icon(Icons.person),
         title: Text(user['firstName'] + ' ' + (user['lastName'] ?? '')),
-        subtitle: Text(user['email'] ?? ''),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(user['email'] ?? ''),
+            Text('Vincular a: $corporateName'),
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

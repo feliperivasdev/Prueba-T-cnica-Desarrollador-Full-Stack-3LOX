@@ -257,6 +257,10 @@ class _ReportPageState extends State<ReportPage> {
                 return Center(child: Text('Error: ${snapshot.error}'));
               }
               _users = (snapshot.data ?? []).where((u) => u['userType'] == 'assessment').toList();
+              if (userRole == 'corporate') {
+                final myId = int.tryParse(html.window.localStorage['user_id'] ?? '');
+                _users = _users.where((u) => u['corporateId'] == myId).toList();
+              }
               if (_users.isEmpty) {
                 return const Center(child: Text('No hay usuarios assessment.'));
               }

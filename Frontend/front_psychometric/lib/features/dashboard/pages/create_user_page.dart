@@ -19,6 +19,14 @@ class _CreateUserPageState extends State<CreateUserPage> {
   bool _isLoading = false;
   final List<String> _roles = ['assessment', 'corporate', 'admin'];
   String? _selectedRole;
+  List<Map<String, dynamic>> _corporates = [];
+  int? _selectedCorporateId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCorporates();
+  }
 
   @override
   void dispose() {
@@ -30,16 +38,32 @@ class _CreateUserPageState extends State<CreateUserPage> {
     super.dispose();
   }
 
+  Future<void> _loadCorporates() async {
+    try {
+      final users = await _userService.fetchUsers();
+      setState(() {
+        _corporates = users.where((u) => u['userType'] == 'corporate').toList();
+      });
+    } catch (e) {
+      // Manejo de error opcional
+    }
+  }
+
   Future<void> _createUser() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await _userService.createUser(
+      final now = DateTime.now().toIso8601String();
+      await _userService.createUserFull(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         email: _emailController.text,
         userType: _selectedRole!,
         password: _passwordController.text,
+        passwordHash: '',
+        createdAt: now,
+        updatedAt: now,
+        corporateId: _selectedCorporateId,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -134,6 +158,31 @@ class _CreateUserPageState extends State<CreateUserPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor seleccione el tipo de usuario';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                value: _selectedCorporateId,
+                items: _corporates
+                    .map((corp) => DropdownMenuItem<int>(
+                          value: corp['id'] as int,
+                          child: Text('${corp['firstName']} ${corp['lastName']}'),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCorporateId = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Vincular a',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (_selectedRole == 'assessment' && (value == null || value == 0)) {
+                    return 'Por favor seleccione el corporate a vincular';
                   }
                   return null;
                 },

@@ -111,4 +111,47 @@ class UserService {
       }
     }
   }
+
+  Future<void> createUserFull({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String userType,
+    required String password,
+    required String passwordHash,
+    required String createdAt,
+    required String updatedAt,
+    int? corporateId,
+  }) async {
+    final token = html.window.localStorage['jwt_token'];
+    if (token == null) {
+      throw Exception('No autenticado');
+    }
+    final response = await http.post(
+      Uri.parse(_baseUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        "firstName": firstName,
+        "lastName": lastName,
+        "email": email,
+        "userType": userType,
+        "password": password,
+        "passwordHash": passwordHash,
+        "createdAt": createdAt,
+        "updatedAt": updatedAt,
+        "corporateId": corporateId ?? 0,
+      }),
+    );
+    if (response.statusCode != 201) {
+      try {
+        final errorData = jsonDecode(response.body);
+        throw Exception('Error al crear el usuario: ${errorData['message'] ?? 'Error desconocido'}');
+      } catch (_) {
+        throw Exception('Error al crear el usuario: ${response.body}');
+      }
+    }
+  }
 } 
