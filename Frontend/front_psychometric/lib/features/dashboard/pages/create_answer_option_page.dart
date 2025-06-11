@@ -29,10 +29,20 @@ class _CreateAnswerOptionPageState extends State<CreateAnswerOptionPage> {
   Future<void> _createAnswerOption() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // 1. Obténer las opciones existentes para la pregunta
+        final existingOptions = await _answerOptionService.fetchAnswerOptionsByQuestionId(widget.questionId);
+
+        // 2. Calcula el siguiente orderNumber disponible
+        final nextOrderNumber = (existingOptions.isNotEmpty)
+            ? (existingOptions.map((o) => o['orderNumber'] as int).reduce((a, b) => a > b ? a : b) + 1)
+            : 1;
+
+        
         final optionData = {
-          "text": _textController.text,
-          "value": int.parse(_valueController.text),
           "questionId": widget.questionId,
+          "value": int.parse(_valueController.text),
+          "text": _textController.text,
+          "orderNumber": nextOrderNumber,
         };
 
         final createdOption = await _answerOptionService.createAnswerOption(optionData);

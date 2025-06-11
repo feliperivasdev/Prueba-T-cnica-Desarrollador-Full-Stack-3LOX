@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/test_service.dart';
 import 'dart:html' as html;
 import 'question_block_page.dart';
-import 'create_test_page.dart'; // Asegúrate de importar la página para crear test
+import 'create_test_page.dart';
 import 'test_page.dart';
 import 'user_page.dart';
 import 'report_page.dart';
@@ -30,6 +30,35 @@ class _DashboardPageState extends State<DashboardPage> {
   DashboardSection _selectedSection = DashboardSection.bienvenida;
   final TestService _testService = TestService();
 
+  @override
+  void initState() {
+    super.initState();
+
+    final initialUserType = html.window.localStorage['user_type'];
+    final initialUserId = html.window.localStorage['user_id'];
+    final initialToken = html.window.localStorage['jwt_token'];
+
+    // Si el usuario es admin, mostrar la sección de usuarios por defecto
+    if (initialUserType == 'admin') {
+      _selectedSection = DashboardSection.users;
+    }
+
+    html.window.onStorage.listen((event) {
+      if (event.key == 'user_type' || event.key == 'user_id' || event.key == 'jwt_token') {
+        final newUserType = html.window.localStorage['user_type'];
+        final newUserId = html.window.localStorage['user_id'];
+        final newToken = html.window.localStorage['jwt_token'];
+
+        if (newUserType != initialUserType || newUserId != initialUserId || newToken != initialToken) {
+          html.window.localStorage.clear();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacementNamed(context, '/login');
+          });
+        }
+      }
+    });
+  }
+
   Widget _buildContent() {
     if (_selectedSection == DashboardSection.tests) {
       return TestPage();
@@ -47,7 +76,7 @@ class _DashboardPageState extends State<DashboardPage> {
             (html.window.localStorage['first_name'] ?? 'Usuario'));
         return Center(
           child: Text(
-            '¡Bienvenido, $nombre!',
+            '¡Bienvenid@, $nombre!',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
         );
@@ -67,6 +96,7 @@ class _DashboardPageState extends State<DashboardPage> {
           IconButton(
             icon: const FaIcon(FontAwesomeIcons.rightFromBracket),
             onPressed: () {
+              html.window.localStorage.clear();
               Navigator.pushReplacementNamed(context, '/login');
             },
           )

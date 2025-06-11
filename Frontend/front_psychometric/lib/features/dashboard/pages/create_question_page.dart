@@ -35,6 +35,7 @@ class _CreateQuestionPageState extends State<CreateQuestionPage> {
             ? (existingQuestions.map((q) => q['orderNumber'] as int).reduce((a, b) => a > b ? a : b) + 1)
             : 1;
         final questionData = {
+          "id": 0,
           "questionBlockId": widget.blockId,
           "text": _textController.text,
           "orderNumber": nextOrderNumber,
